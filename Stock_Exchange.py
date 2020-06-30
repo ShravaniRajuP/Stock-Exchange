@@ -5,37 +5,10 @@
 
 # In[2]:
 
-
-class Player():
-    def __init__(self,name, conn, amount = 600000):
-        self.player_name = name
-        self.player_amount = amount
-        self.player_cards = []
-        self.player_shares = {}
-        self.player_connection = conn
-
-    def __str__(self):
-        return self.player_name
-
-class Cards():
-    def __init__(self,company,value):
-        self.card_company = company
-        self.card_value = value
-    
-class Company():
-    def __init__(self,name,sp):
-        self.company_name = name
-        self.company_starting_price = sp
-        self.company_current_price = sp
-        self.company_total_shares = 200000
-
-    def __str__(self):
-        return self.company_name
-
+# from server import broadcast
+from Classes import Player, Cards, Company
 
 # In[ ]:
-
-
 import random
 import time
 
@@ -76,12 +49,14 @@ def round_robin(n):
 
 # Print player information before and after playing turn
 def print_trade(current_player, c = '', company = None, shares = 0, choice = 0):
-    if c == 'after':
-        ### Print After Trade
-        print("\n{}, {}, {}, {}".format(current_player.player_name,choice,shares,company.company_name))
-    ### Print Before & After Trade
-    print("\nName : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
-    print("Current Shares : {}".format(current_player.player_shares))
+    pass
+    # broadcast({'Name': current_player.)
+    # if c == 'after':
+    #     ### Print After Trade
+    #     print("\n{}, {}, {}, {}".format(current_player.player_name,choice,shares,company.company_name))
+    # ### Print Before & After Trade
+    # print("\nName : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
+    # print("Current Shares : {}".format(current_player.player_shares))
     
 # Trade - Buy
 def buy(current_player, company, shares):
@@ -125,7 +100,7 @@ def player_choice(current_player):
         player_choice(current_player)
 
 # Game begins
-def game(turn,num): 
+def game(turn,num, list_of_players): 
     while turn < num:
         current_player = list_of_players[next(current_turn)]    
         print_trade(current_player)
@@ -153,29 +128,30 @@ def game(turn,num):
 
 # In[ ]:
 
-if __name__ == "__main__":
+list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
+com_name_list = [Company(company,price) for company,price in list_of_companies.items()]
+list_of_cards = create_company(list_of_companies)
+list_of_players = []
+current_turn = None
 
-    list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
-    com_name_list = [Company(company,price) for company,price in list_of_companies.items()]
-    number_of_players = int(input("Enter Number of Players: "))
-    list_of_players = player_instance(number_of_players)
-    list_of_cards = create_company(list_of_companies)
+def gameplay(player_list):
+    print("Gameplay")
+    list_of_players = player_list
+    number_of_players = len(list_of_players)
     for player in list_of_players:
         print(player.player_name,player.player_amount)
-        
+    
     turn = 0
     rounds = 0
     assign_cards(list_of_cards,list_of_players)
+    global current_turn
     current_turn = round_robin(number_of_players)
-
 
     # ### Step Two: Start the game
 
     # In[ ]:
-
-
     while rounds < 2:
-        game(turn,3*number_of_players)
+        game(turn,3*number_of_players, list_of_players)
         for cp in list_of_players:
             for idx,com in enumerate(list_of_companies.keys()):
                 ans = filter(lambda x: x.card_company == com,cp.player_cards)

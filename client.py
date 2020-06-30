@@ -1,4 +1,6 @@
 import socket
+import json
+from Classes import Player, Cards, Company
 
 ClientSocket = socket.socket()
 host = '127.0.0.1'
@@ -28,15 +30,21 @@ def wait():
     pass
 
 def check_response(data):
-    print(data)
+    # print(data)
     if data == 'host':
         host_file()
     elif data == 'play':
         play()
     elif data == 'wait':
         wait()
+    # elif data == 'json':
+    #     # b = b'' + ClientSocket.recv(1024)
+    #     # Response = json.loads(b.decode('utf-8'))
+    #     # Response = ClientSocket.recv(1024).decode('utf-8')
+    #     print(Response)
     else:
         non_hostfile()
+    return
 
 Input = input('Enter Your Name: ')
 ClientSocket.send(str.encode(Input))
@@ -45,7 +53,7 @@ print(Response)
 check_response(Response)
 while True:
     Response = ClientSocket.recv(1024).decode('utf-8')
-    # print(Response)
+    print(Response)
     check_response(Response)
 
 ClientSocket.close()
