@@ -20,21 +20,32 @@ def host_file():
 def non_hostfile():
     print("Waiting for the host to start the game.")
 
+def play():
+    Input = input("Play your turn: ")
+    ClientSocket.send(str.encode(Input))
+
+def wait():
+    pass
 
 def check_response(data):
+    print(data)
     if data == 'host':
         host_file()
+    elif data == 'play':
+        play()
+    elif data == 'wait':
+        wait()
     else:
         non_hostfile()
 
-
 Input = input('Enter Your Name: ')
 ClientSocket.send(str.encode(Input))
-Response = ClientSocket.recv(1024)
-print(Response.decode('utf-8'))
-check_response(Response.decode())
+Response = ClientSocket.recv(1024).decode('utf-8')
+print(Response)
+check_response(Response)
 while True:
-    Response = ClientSocket.recv(1024)
-    print(Response.decode('utf-8'))
+    Response = ClientSocket.recv(1024).decode('utf-8')
+    # print(Response)
+    check_response(Response)
 
 ClientSocket.close()
