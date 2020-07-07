@@ -27,7 +27,7 @@ def print_price_list(com_name_list):
     # print(list(map(lambda x: {x.company_name: x.company_current_price},com_name_list)))
     print()
     for company in com_name_list:
-        print(company.company_name, company.company_current_price, sep=': ', end='\t')
+        print(company.company_name, company.company_current_price, sep=': ', end='    ')
     print()
 
 def player_choice():
