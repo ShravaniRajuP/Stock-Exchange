@@ -156,8 +156,8 @@ def gameplay():
     current_turn = round_robin(number_of_players)
 
     # ### Step Two: Start the game
-    while rounds < 2:
-        game(turn,number_of_players, list_of_players)
+    while rounds < 5:
+        game(turn,2*number_of_players, list_of_players)
         for cp in list_of_players:
             for idx,com in enumerate(list_of_companies.keys()):
                 ans = filter(lambda x: x.card_company == com,cp.player_cards)
@@ -189,6 +189,8 @@ def gameplay():
     for current_player in list_of_players:
         for shares in current_player.player_shares.keys():
             current_player.player_amount += current_player.player_shares[shares] * list_of_companies[shares]
+
+        broadcast(clients,' '.join(['Name: ',player.player_name,'; Amount: ',str(player.player_amount)]))
             
     # for current_player in list_of_players:
     #     print("Name : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
