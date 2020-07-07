@@ -11,12 +11,8 @@ port = 1233
 count = 1
 clients = {}
 
-#!/usr/bin/env python
-# coding: utf-8
-
 # ### Step 0: Pre-game initializations
 
-# from server import broadcast
 from Classes import Player, Cards, Company
 
 import random
@@ -57,21 +53,14 @@ def round_robin(n):
 # Print player information before and after playing turn
 def print_trade(current_player, c = '', company = None, shares = 0, choice = 0):
     pass
-    # broadcast({'Name': current_player.)
-    # if c == 'after':
-    #     ### Print After Trade
-    #     print("\n{}, {}, {}, {}".format(current_player.player_name,choice,shares,company.company_name))
-    # ### Print Before & After Trade
-    # print("\nName : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
-    # print("Current Shares : {}".format(current_player.player_shares))
-    
+
 # Trade - Buy
 def buy(current_player, company, shares):
     if current_player.player_amount >= shares * company.company_current_price:
         current_player.player_amount -= shares * company.company_current_price
         current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) + shares
     else:
-        print("Not enough money to buy the shares \n")
+        current_player.player_connection.send(str.encode("Not enough money to buy the shares \n"))
         player_choice(current_player)
         
 # Trade - Sell
@@ -80,7 +69,7 @@ def sell(current_player, company, shares):
         current_player.player_amount += shares*company.company_current_price
         current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) - shares
     else:
-        print("Not enough shares to sell. \n")
+        current_player.player_connection.send(str.encode("Not enough shares to sell. \n"))
         player_choice(current_player)
 
 # def check(company_name,current_player=None,choice=None):
@@ -114,6 +103,7 @@ def game(turn,num, list_of_players):
         current_player.player_connection.send(str.encode("Cards"))
         for cards in current_player.player_cards:
             current_player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
+            time.sleep(1)
         time.sleep(2)
         current_player.player_connection.send(str.encode('play'))
         ## Trade
@@ -147,10 +137,12 @@ list_of_cards = create_company(list_of_companies)
 list_of_players = []
 current_turn = None
 
-def gameplay(player_list):
-    # print("Gameplay")
-    list_of_players = player_list
+def gameplay():
+    list_of_players = player_instance(clients)
+    time.sleep(3)
     number_of_players = len(list_of_players)
+    
+	# player_list[0].player_connection.send(json.dumps({1: 'a', 2: 'b'}).encode('utf-8'))
     # Redundant - Done in client
     # for player in list_of_players:
     # #     print(player.player_name,player.player_amount)
@@ -164,8 +156,6 @@ def gameplay(player_list):
     current_turn = round_robin(number_of_players)
 
     # ### Step Two: Start the game
-
-    # In[ ]:
     while rounds < 2:
         game(turn,number_of_players, list_of_players)
         for cp in list_of_players:
@@ -185,8 +175,8 @@ def gameplay(player_list):
             broadcast(clients, str(company.company_current_price))
             time.sleep(1)
 
-        for player in player_list:
-            broadcast(clients,','.join([player.player_name,str(player.player_amount)]))
+        for player in list_of_players:
+            broadcast(clients,' '.join(['Name: ',player.player_name,'; Amount: ',str(player.player_amount), '; \nShares: ']))
             broadcast(clients,player.player_shares)
             time.sleep(1)
 
@@ -200,49 +190,38 @@ def gameplay(player_list):
         for shares in current_player.player_shares.keys():
             current_player.player_amount += current_player.player_shares[shares] * list_of_companies[shares]
             
-    for current_player in list_of_players:
-        print("Name : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
-        print("Current Shares : {}".format(current_player.player_shares))
-
-def game_():
-	player_list = player_instance(clients)
-	# current_turn = round_robin(len(player_list))
-
-	# player_list[0].player_connection.send(str.encode('play'))
-	time.sleep(3)
-	# player_list[0].player_connection.send(json.dumps({1: 'a', 2: 'b'}).encode('utf-8'))
-	gameplay(player_list)
+    # for current_player in list_of_players:
+    #     print("Name : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
+    #     print("Current Shares : {}".format(current_player.player_shares))
 
 if __name__ == "__main__":
-	try:
-		ServerSocket.bind((host, port))
-	except socket.error as e:
-		print(str(e))
+    try:
+        ServerSocket.bind((host, port))
+    except socket.error as e:
+        print(str(e))
 
-	print('Waitiing for a host..')
-	ServerSocket.listen(5)
-	Client, address = ServerSocket.accept()
-	host_name = Client.recv(1024).decode()
-	print("Host Name: ",host_name)
-	Client.send(str.encode('host'))
+    print('Waitiing for a host..')
+    ServerSocket.listen(5)
+    Client, address = ServerSocket.accept()
+    host_name = Client.recv(1024).decode()
+    print("Host Name: ",host_name)
+    Client.send(str.encode('host'))
 
-	num_of_players = int(Client.recv(1024).decode())
-	print("number of players = ",str(num_of_players))
-	clients[host_name] = Client
-	start_new_thread(threaded_client, (Client, 0, ))
+    num_of_players = int(Client.recv(1024).decode())
+    print("Number of Players = ",str(num_of_players))
+    clients[host_name] = Client
+    start_new_thread(threaded_client, (Client, 0, ))
 
-	while True:
-		if count < num_of_players:
-			Client, address = ServerSocket.accept()
-			count += 1
-			start_new_thread(threaded_client, (Client, ))
-		else:
-			if count == num_of_players and count == len(clients):
-				# print("all Connected")
-				num_of_players = 0
-				broadcast(clients, ','.join(clients.keys()))
-				time.sleep(3)
-				# game starts
-				game_()
-			else:
-				continue
+    while True:
+        if count < num_of_players:
+            Client, address = ServerSocket.accept()
+            count += 1
+            start_new_thread(threaded_client, (Client, ))
+        else:
+            if count == num_of_players and count == len(clients):
+                num_of_players = 0
+                broadcast(clients, ','.join(clients.keys()))
+                time.sleep(3)
+                gameplay()
+            else:
+                continue
