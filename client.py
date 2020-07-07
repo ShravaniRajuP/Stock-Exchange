@@ -3,7 +3,8 @@ import json
 from Classes import Player, Cards, Company
 
 ClientSocket = socket.socket()
-host = '192.168.0.21'
+host = '192.168.0.21' # Hardik's IP
+# host = '192.168.0.1' # Shravani's IP
 port = 1233
 
 list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
