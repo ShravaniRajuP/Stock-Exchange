@@ -79,20 +79,22 @@ def sell(current_player, company, shares):
 def player_choice(current_player):
     choice = current_player.player_connection.recv(1024).decode().split(',')
     print(choice)
-    
-    if choice[0] == 'pass' or choice[0] == '':
-        print("{} {}".format(current_player.player_name,choice))
+    try:
+        if choice[0] == 'pass' or choice[0] == '':
+            print("{} {}".format(current_player.player_name,choice))
+            return
+        elif choice[0] == 'buy' or choice[0] == 'sell':
+            company = com_name_list[int(choice[1])-1] 
+            print(company)
+            if choice[0] == 'buy':
+                buy(current_player, company, int(choice[2]))
+            else:
+                sell(current_player, company, int(choice[2]))
+            print("{} {}".format(current_player.player_name,choice))
+            broadcast(clients, current_player.player_name + ',' + ','.join(choice))
         return
-    elif choice[0] == 'buy' or choice[0] == 'sell':
-        company = com_name_list[int(choice[1])-1] 
-        print(company)
-        if choice[0] == 'buy':
-            buy(current_player, company, int(choice[2]))
-        else:
-            sell(current_player, company, int(choice[2]))
-        print("{} {}".format(current_player.player_name,choice))
-        broadcast(clients, current_player.player_name + ',' + ','.join(choice))
-    return
+    except:
+        player_choice(current_player)
     #     print_trade(current_player, company, 'after', shares, choice)
 
 # Game begins
