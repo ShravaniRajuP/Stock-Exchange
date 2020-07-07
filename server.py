@@ -82,7 +82,7 @@ def player_choice(current_player):
     try:
         if choice[0] == 'pass' or choice[0] == '':
             print("{} {}".format(current_player.player_name,choice))
-            broadcast(clients, current_player.player_name + " " + (choice) + 'ed.')
+            # broadcast(clients, current_player.player_name + " " + (choice) + 'ed.')
             return
         elif choice[0] == 'buy' or choice[0] == 'sell':
             company = com_name_list[int(choice[1])-1] 
@@ -103,8 +103,8 @@ def game(turn,num, list_of_players):
     while turn < num:
         current_player = list_of_players[next(current_turn)]    
         print_trade(current_player)
-        current_player.player_connection.send(str.encode("Cards"))
         if turn < len(list_of_players):
+            current_player.player_connection.send(str.encode("Cards"))
             for cards in current_player.player_cards:
                 current_player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
                 time.sleep(1)
@@ -118,10 +118,8 @@ def game(turn,num, list_of_players):
         
         #End Turn 
         print('\nEnd of turn {}'.format(turn+1))
-        for player in list_of_players:
-            broadcast(clients,' '.join(['\nName: ',player.player_name,'; Amount: ',str(player.player_amount), '; \nShares: ']))
-            broadcast(clients,player.player_shares)
-            time.sleep(1)
+        current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,'; Amount: ',str(current_player.player_amount), '; \nShares: '])))
+        current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
         time.sleep(2)
         turn += 1
 
@@ -186,6 +184,10 @@ def gameplay():
             broadcast(clients, str(company.company_current_price))
             time.sleep(1)
 
+        for player in list_of_players:
+            broadcast(clients,' '.join(['\nName: ',player.player_name,'; Amount: ',str(player.player_amount), '; \nShares: ']))
+            broadcast(clients,player.player_shares)
+            time.sleep(1)
 
         time.sleep(3)
         turn = 0
