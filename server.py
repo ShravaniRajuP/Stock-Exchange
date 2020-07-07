@@ -216,7 +216,9 @@ if __name__ == "__main__":
         ServerSocket.bind((host, port))
     except socket.error as e:
         print(str(e))
-
+    ip = socket.gethostbyname(socket.gethostname())
+    print("IP address for connection : ")
+    print(ip)
     print('Waitiing for a host..')
     ServerSocket.listen(5)
     Client, address = ServerSocket.accept()
