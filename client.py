@@ -31,8 +31,8 @@ def print_price_list(com_name_list):
     print()
 
 def player_choice():
-    # print("\nPrice List: ", end="")
-    # print_price_list(com_name_list)
+    print("\nPrice List: ", end="")
+    print_price_list(com_name_list)
     choice = input("\nEnter your choice(buy/sell/pass): ")
     if choice == 'pass' or choice == '':
         # print('pass')
@@ -40,10 +40,10 @@ def player_choice():
         return
     elif choice == 'buy' or choice == 'sell':
         print("\n")
-        print(list(map(lambda x: x.company_name,com_name_list)))
-        com_num = input("Enter the company number: ")
+        # print(list(map(lambda x: x.company_name,com_name_list)))
+        com_num = input("Enter the company number \t(1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
-        ClientSocket.send(str.encode(choice +','+ com_num +','+ shares))
+        ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
         print(choice, shares, com_num)
     else:
         player_choice()

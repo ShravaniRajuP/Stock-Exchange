@@ -198,6 +198,14 @@ def gameplay():
             all_player.player_amount += all_player.player_shares[shares] * list_of_companies[shares]
 
         broadcast(clients,' '.join(['Name: ',all_player.player_name,'; Amount: ',str(all_player.player_amount)]))
+
+    clients[host_name].send(str.encode("Do you want to play again? (Y/N)"))
+    answer = clients[host_name].recv(512).decode('utf-8')
+    if answer == 'Y' or answer == 'y':
+        gameplay()
+    else:
+        ServerSocket.close()
+
             
     # for current_player in list_of_players:
     #     print("Name : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
@@ -229,7 +237,7 @@ if __name__ == "__main__":
         else:
             if count == num_of_players and count == len(clients):
                 num_of_players = 0
-                broadcast(clients, ','.join(clients.keys()))
+                broadcast(clients, ', '.join(clients.keys()))
                 time.sleep(3)
                 gameplay()
             else:
