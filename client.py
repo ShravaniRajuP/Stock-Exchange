@@ -49,16 +49,17 @@ def player_choice():
         player_choice()
     
 
-def wait():
-    pass
+def wait(data):
+    name = data.split(" ")
+    print(name[1] + " playing......")
 
 def check_response(data):
     if data == 'host':
         host_file()
     elif data == 'play':
         player_choice()
-    elif data == 'wait':
-        wait()
+    elif data.startswith('wait'):
+        wait(data)
     elif data == 'update':
         for i in range(len(com_name_list)):
             change = ClientSocket.recv(1024).decode('utf-8')

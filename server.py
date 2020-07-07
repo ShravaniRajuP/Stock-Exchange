@@ -82,6 +82,7 @@ def player_choice(current_player):
     try:
         if choice[0] == 'pass' or choice[0] == '':
             print("{} {}".format(current_player.player_name,choice))
+            broadcast(clients, current_player.player_name + " " + (choice) + 'ed.')
             return
         elif choice[0] == 'buy' or choice[0] == 'sell':
             company = com_name_list[int(choice[1])-1] 
@@ -103,9 +104,13 @@ def game(turn,num, list_of_players):
         current_player = list_of_players[next(current_turn)]    
         print_trade(current_player)
         current_player.player_connection.send(str.encode("Cards"))
-        for cards in current_player.player_cards:
-            current_player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
-            time.sleep(1)
+        if turn < len(list_of_players):
+            for cards in current_player.player_cards:
+                current_player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
+                time.sleep(1)
+        for player in list_of_players:
+            if player != current_player:
+                player.player_connection.send(str.encode('wait ' + str(current_player.player_name)))
         time.sleep(2)
         current_player.player_connection.send(str.encode('play'))
         ## Trade
@@ -113,6 +118,10 @@ def game(turn,num, list_of_players):
         
         #End Turn 
         print('\nEnd of turn {}'.format(turn+1))
+        for player in list_of_players:
+            broadcast(clients,' '.join(['\nName: ',player.player_name,'; Amount: ',str(player.player_amount), '; \nShares: ']))
+            broadcast(clients,player.player_shares)
+            time.sleep(1)
         time.sleep(2)
         turn += 1
 
@@ -177,10 +186,6 @@ def gameplay():
             broadcast(clients, str(company.company_current_price))
             time.sleep(1)
 
-        for player in list_of_players:
-            broadcast(clients,' '.join(['Name: ',player.player_name,'; Amount: ',str(player.player_amount), '; \nShares: ']))
-            broadcast(clients,player.player_shares)
-            time.sleep(1)
 
         time.sleep(3)
         turn = 0
@@ -188,11 +193,11 @@ def gameplay():
         assign_cards(list_of_cards,list_of_players)
         rounds += 1
         
-    for current_player in list_of_players:
-        for shares in current_player.player_shares.keys():
-            current_player.player_amount += current_player.player_shares[shares] * list_of_companies[shares]
+    for all_player in list_of_players:
+        for shares in all_player.player_shares.keys():
+            all_player.player_amount += all_player.player_shares[shares] * list_of_companies[shares]
 
-        broadcast(clients,' '.join(['Name: ',player.player_name,'; Amount: ',str(player.player_amount)]))
+        broadcast(clients,' '.join(['Name: ',all_player.player_name,'; Amount: ',str(all_player.player_amount)]))
             
     # for current_player in list_of_players:
     #     print("Name : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
