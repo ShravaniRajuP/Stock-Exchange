@@ -49,7 +49,6 @@ def round_robin(n):
     for i in range(1000):
         yield i%n
 
-
 # Print player information before and after playing turn
 def print_trade(current_player, c = '', company = None, shares = 0, choice = 0):
     pass
@@ -71,9 +70,6 @@ def sell(current_player, company, shares):
     else:
         current_player.player_connection.send(str.encode("Not enough shares to sell. \n"))
         player_choice(current_player)
-
-# def check(company_name,current_player=None,choice=None):
-    
     
 # Pass / Buy / Sell (?)
 def player_choice(current_player):
@@ -82,7 +78,6 @@ def player_choice(current_player):
     try:
         if choice[0] == 'pass' or choice[0] == '':
             print("{} {}".format(current_player.player_name,choice))
-            # broadcast(clients, current_player.player_name + " " + (choice) + 'ed.')
             return
         elif choice[0] == 'buy' or choice[0] == 'sell':
             company = com_name_list[int(choice[1])-1] 
@@ -96,7 +91,6 @@ def player_choice(current_player):
         return
     except:
         player_choice(current_player)
-    #     print_trade(current_player, company, 'after', shares, choice)
 
 # Game begins
 def game(turn,num, list_of_players): 
@@ -131,7 +125,6 @@ def broadcast(clients, msg = None):
             conn.send(json.dumps(msg).encode())
 
 def threaded_client(connection, flag = 1, ):
-	# connection.send(str.encode('Welcome..!! \n'))
 	if flag: 
 		player_name = connection.recv(2048).decode()
 		print(player_name, " joined.")	
@@ -150,13 +143,6 @@ def gameplay():
     list_of_players = player_instance(clients)
     time.sleep(3)
     number_of_players = len(list_of_players)
-    
-	# player_list[0].player_connection.send(json.dumps({1: 'a', 2: 'b'}).encode('utf-8'))
-    # Redundant - Done in client
-    # for player in list_of_players:
-    # #     print(player.player_name,player.player_amount)
-    #     broadcast(clients, ': '.join([player.player_name, str(player.player_amount)]))
-    #     broadcast(clients, player.player_shares)
     
     turn = 0
     rounds = 0
@@ -180,6 +166,7 @@ def gameplay():
         print("\nEnd of Round {}\n".format(rounds+1))
         print(list(map(lambda x: {x.company_name:x.company_current_price},com_name_list)))
         broadcast(clients, 'update')
+        
         for company in com_name_list:
             broadcast(clients, str(company.company_current_price))
             time.sleep(1)
@@ -207,11 +194,6 @@ def gameplay():
         gameplay()
     else:
         ServerSocket.close()
-
-            
-    # for current_player in list_of_players:
-    #     print("Name : {} \t Amount : {}".format(current_player.player_name,current_player.player_amount))
-    #     print("Current Shares : {}".format(current_player.player_shares))
 
 if __name__ == "__main__":
     try:
