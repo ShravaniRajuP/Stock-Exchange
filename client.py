@@ -75,6 +75,11 @@ def check_response(data):
             # print(list(card.keys())[0], list(card.values())[0])
             space_len = 12 - len(list(card.keys())[0])
             print(list(card.keys())[0], list(card.values())[0], sep=' : ' + ' '*space_len, end='\n')
+    elif data == 'suspend':
+        Input = input('Do you want to use Share Suspend? (Enter Company Number / pass)')
+        if Input < 1 or Input > 6 or Input != 'pass':
+            check_response('suspend')
+        ClientSocket.send(str.encode(Input))
     # elif data == 'json':
     #     # b = b'' + ClientSocket.recv(1024)
     #     # Response = json.loads(b.decode('utf-8'))
