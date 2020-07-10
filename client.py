@@ -43,7 +43,7 @@ def player_choice():
     elif choice == 'buy' or choice == 'sell':
         print("\n")
         # print(list(map(lambda x: x.company_name,com_name_list)))
-        com_num = input("Enter the company number \t(1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
+        com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
         ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
         print(choice, shares, com_num)
