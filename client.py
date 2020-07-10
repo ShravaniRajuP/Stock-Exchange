@@ -42,14 +42,12 @@ def player_choice():
         return
     elif choice == 'buy' or choice == 'sell':
         print("\n")
-        # print(list(map(lambda x: x.company_name,com_name_list)))
-        com_num = input("Enter the company number \t(1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
+        com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
         ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
         print(choice, shares, com_num)
     else:
         player_choice()
-    
 
 def wait(data):
     name = data.split(" ")
@@ -72,14 +70,8 @@ def check_response(data):
         for i in range(10):
             b = b'' + ClientSocket.recv(1024)
             card = json.loads(b.decode('utf-8'))
-            # print(list(card.keys())[0], list(card.values())[0])
             space_len = 12 - len(list(card.keys())[0])
             print(list(card.keys())[0], list(card.values())[0], sep=' : ' + ' '*space_len, end='\n')
-    # elif data == 'json':
-    #     # b = b'' + ClientSocket.recv(1024)
-    #     # Response = json.loads(b.decode('utf-8'))
-    #     # Response = ClientSocket.recv(1024).decode('utf-8')
-    #     print(Response)
     else:
         print(data)
     return
