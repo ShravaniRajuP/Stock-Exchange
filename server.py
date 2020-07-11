@@ -115,7 +115,7 @@ def player_choice(current_player):
             elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
                 debenture(current_player, company)
             elif choice[0] == 'rights' and card_check(current_player, choice[0]):
-                rights()
+                rights(company)
             else:
                 sell(current_player, company, int(choice[2]))
             print("{} {}".format(current_player.player_name,choice))
@@ -132,6 +132,7 @@ def game(turn,num, list_of_players):
             current_player.player_connection.send(str.encode("Cards"))
             for cards in current_player.player_cards:
                 if cards.card_company == 'Share Suspend':
+                    global share_suspend_holder
                     share_suspend_holder = current_player
                 current_player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
                 time.sleep(1)
@@ -196,7 +197,7 @@ def gameplay():
                 change_price[idx] += final
             
             ans_curr = filter(lambda x: x.card_company == 'Currency', cp.player_cards)
-            final_curr = sum(list(map(lambda x: x.card_value, list(ans))))
+            final_curr = sum(list(map(lambda x: x.card_value, list(ans_curr))))
         
         for cp in list_of_players:
             cp.player_amount += (cp.player_amount * final_curr / 100)
@@ -245,36 +246,35 @@ def gameplay():
         ServerSocket.close()
 
 if __name__ == "__main__":
-    
-    # try:
-    #     ServerSocket.bind((host, port))
-    # except socket.error as e:
-    #     print(str(e))
-    # ip = socket.gethostbyname(socket.gethostname())
-    # print("IP address for connection : ")
-    # print(ip)
-    # print('Waitiing for a host..')
-    # ServerSocket.listen(5)
-    # Client, address = ServerSocket.accept()
-    # host_name = Client.recv(1024).decode()
-    # print("Host Name: ",host_name)
-    # Client.send(str.encode('host'))
+    try:
+        ServerSocket.bind((host, port))
+    except socket.error as e:
+        print(str(e))
+    ip = socket.gethostbyname(socket.gethostname())
+    print("IP address for connection : ")
+    print(ip)
+    print('Waitiing for a host..')
+    ServerSocket.listen(5)
+    Client, address = ServerSocket.accept()
+    host_name = Client.recv(1024).decode()
+    print("Host Name: ",host_name)
+    Client.send(str.encode('host'))
 
-    # num_of_players = int(Client.recv(1024).decode())
-    # print("Number of Players = ",str(num_of_players))
-    # clients[host_name] = Client
-    # start_new_thread(threaded_client, (Client, 0, ))
+    num_of_players = int(Client.recv(1024).decode())
+    print("Number of Players = ",str(num_of_players))
+    clients[host_name] = Client
+    start_new_thread(threaded_client, (Client, 0, ))
 
-    # while True:
-    #     if count < num_of_players:
-    #         Client, address = ServerSocket.accept()
-    #         count += 1
-    #         start_new_thread(threaded_client, (Client, ))
-    #     else:
-    #         if count == num_of_players and count == len(clients):
-    #             num_of_players = 0
-    #             broadcast(clients, ', '.join(clients.keys()))
-    #             time.sleep(3)
-    #             gameplay()
-    #         else:
-    #             continue
+    while True:
+        if count < num_of_players:
+            Client, address = ServerSocket.accept()
+            count += 1
+            start_new_thread(threaded_client, (Client, ))
+        else:
+            if count == num_of_players and count == len(clients):
+                num_of_players = 0
+                broadcast(clients, ', '.join(clients.keys()))
+                time.sleep(3)
+                gameplay()
+            else:
+                continue

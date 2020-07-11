@@ -47,6 +47,14 @@ def player_choice():
         shares = input("Enter the number of shares: ")
         ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
         print(choice, shares, com_num)
+    elif choice == 'loan':
+        ClientSocket.send(str.encode(choice))
+    elif choice == 'debenture':
+        com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
+        ClientSocket.send(str.encode(choice + ', ' + com_num))
+    elif choice == 'rights':
+        com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
+        ClientSocket.send(str.encode(choice + ', ' + com_num))
     else:
         player_choice()
     
