@@ -70,6 +70,7 @@ def buy(current_player, company, shares):
         current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) + shares
     else:
         current_player.player_connection.send(str.encode("Not enough money to buy the shares \n"))
+        current_player.player_connection.send(str.encode('play'))
         player_choice(current_player)
         
 # Trade - Sell
@@ -79,10 +80,12 @@ def sell(current_player, company, shares):
         current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) - shares
     else:
         current_player.player_connection.send(str.encode("Not enough shares to sell. \n"))
+        current_player.player_connection.send(str.encode('play'))
         player_choice(current_player)
     
 def card_check(current_player, choice):
-    ans = filter(lambda x: x.card_company.lower().startswith(choice), current_player.player_cards)
+    ans = list(filter(lambda x: x.card_company.lower().startswith(choice), current_player.player_cards))
+    print(ans)
     return len(ans)
 
 def loan(current_player):
@@ -101,28 +104,32 @@ def rights(company):
 def player_choice(current_player):
     choice = current_player.player_connection.recv(1024).decode().split(',')
     print(choice)
-    try:
-        if choice[0] == 'pass' or choice[0] == '':
-            print("{} {}".format(current_player.player_name,choice))
-            return
-        elif choice[0] == 'buy' or choice[0] == 'sell' or choice[0] == 'loan' or choice[0] == 'debenture' or choice[0] == 'rights':
-            company = com_name_list[int(choice[1])-1] 
-            print(company)
-            if choice[0] == 'buy':
-                buy(current_player, company, int(choice[2]))
-            elif choice[0] == 'loan' and card_check(current_player, choice[0]):
-                loan(current_player)
-            elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
-                debenture(current_player, company)
-            elif choice[0] == 'rights' and card_check(current_player, choice[0]):
-                rights(company)
-            else:
-                sell(current_player, company, int(choice[2]))
-            print("{} {}".format(current_player.player_name,choice))
-            broadcast(clients, current_player.player_name + ',' + ','.join(choice))
+    # try:
+    if choice[0] == 'pass' or choice[0] == '':
+        print("{} {}".format(current_player.player_name,choice))
         return
-    except:
-        player_choice(current_player)
+    elif choice[0] == 'buy' or choice[0] == 'sell':
+        company = com_name_list[int(choice[1])-1] 
+        print(company)
+        if choice[0] == 'buy':
+            buy(current_player, company, int(choice[2]))
+        else:
+            sell(current_player, company, int(choice[2]))
+        print("{} {}".format(current_player.player_name,choice))
+        broadcast(clients, current_player.player_name + ',' + ','.join(choice))
+    elif choice[0] == 'loan' or choice[0] == 'debenture' or choice[0] == 'rights':
+        if choice[0] == 'loan' and card_check(current_player, choice[0]):
+            print("Loan")
+            loan(current_player)
+        elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
+            company = com_name_list[int(choice[1])-1]
+            debenture(current_player, company)
+        elif choice[0] == 'rights' and card_check(current_player, choice[0]):
+            company = com_name_list[int(choice[1])-1]
+            rights(company)
+    return
+    # except:
+    #     player_choice(current_player)
 
 # Game begins
 def game(turn,num, list_of_players): 
@@ -212,6 +219,7 @@ def gameplay():
         # share_suspend()
         if share_suspend_holder:
             share_suspend_holder.player_connection.send(str.encode('suspend'))
+            time.sleep(2)
             choice = ServerSocket.recv(1024).decode('utf-8')
             if choice != 'pass':
                 company = com_name_list[int(choice) - 1]
