@@ -18,6 +18,10 @@ try:
 except socket.error as e:
     print(str(e))
 
+def reset_price():
+    global list_of_companies
+    list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
+
 def host_file():
     Input = input("Number of players: ")
     ClientSocket.send(str.encode(Input))
@@ -80,7 +84,6 @@ def check_response(data):
         for i in range(10):
             b = b'' + ClientSocket.recv(1024)
             card = json.loads(b.decode('utf-8'))
-            # print(list(card.keys())[0], list(card.values())[0])
             space_len = 12 - len(list(card.keys())[0])
             print(list(card.keys())[0], list(card.values())[0], sep=' : ' + ' '*space_len, end='\n')
     elif data == 'suspend':
@@ -91,12 +94,11 @@ def check_response(data):
         ClientSocket.send(str.encode(Input))
     elif data == 'play again':
         Input = input("Do you want to play again? (Y/N)")
-        ClientSocket.send(str.encode(Input))
-    # elif data == 'json':
-    #     # b = b'' + ClientSocket.recv(1024)
-    #     # Response = json.loads(b.decode('utf-8'))
-    #     # Response = ClientSocket.recv(1024).decode('utf-8')
-    #     print(Response)
+        if Input.lower() == 'n':
+            ClientSocket.close()
+        else:
+            ClientSocket.send(str.encode(Input))
+            reset_price()
     else:
         print(data)
     return

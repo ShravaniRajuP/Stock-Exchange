@@ -69,14 +69,24 @@ list_of_players = []
 current_turn = None
 share_suspend_holder = None
 
+def reset_game():
+    global list_of_companies
+    list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
+    for com in com_name_list:
+        com.company_current_price = com.company_starting_price
+
+
 # Trade - Buy
 def buy(current_player, company, shares):
     if current_player.player_amount >= shares * company.company_current_price:
         current_player.player_amount -= shares * company.company_current_price
         current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) + shares
+        broadcast(clients, current_player.player_name + ',' + ','.join(["buys" , company.company_name, shares]))
     else:
         current_player.player_connection.send(str.encode("Not enough money to buy the shares \n"))
+        time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
+        time.sleep(1)
         player_choice(current_player,list_of_players)
         
 # Trade - Sell
@@ -84,9 +94,12 @@ def sell(current_player, company, shares):
     if current_player.player_shares.get(company.company_name,0) >= shares:
         current_player.player_amount += shares*company.company_current_price
         current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) - shares
+        broadcast(clients, current_player.player_name + ',' + ','.join(["sells" , company.company_name, shares]))
     else:
         current_player.player_connection.send(str.encode("Not enough shares to sell. \n"))
+        time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
+        time.sleep(1)
         player_choice(current_player,list_of_players)
     
 def card_check(current_player, choice):
@@ -135,7 +148,7 @@ def player_choice(current_player,lp):
         if choice[0] == 'pass' or choice[0] == '':
             print("{} {}".format(current_player.player_name,choice))
             broadcast(clients, "Passed.")
-            time.sleep(2)
+            time.sleep(1)
             #add pass
             return
         elif choice[0] == 'buy' or choice[0] == 'sell':
@@ -145,8 +158,8 @@ def player_choice(current_player,lp):
             else:
                 sell(current_player, company, int(choice[2]))
             print("{} {}".format(current_player.player_name,choice))
-            broadcast(clients, current_player.player_name + ',' + ','.join(choice))
-            time.sleep(2)
+            
+            time.sleep(1)
         elif choice[0] == 'loan' or choice[0] == 'debenture' or choice[0] == 'rights':
             if choice[0] == 'loan' and card_check(current_player, choice[0]):
                 loan(current_player)
@@ -163,11 +176,12 @@ def player_choice(current_player,lp):
                     else:
                         broadcast(clients,' '.join(['\nName: ',player.player_name,'; Amount: ',str(player.player_amount), '; \nShares: ']))
                         broadcast(clients,player.player_shares)
-                        time.sleep(2)
+                        time.sleep(1)
 
         return
     except:
         current_player.player_connection.send(str.encode('play'))
+        time.sleep(1)
         player_choice(current_player,lp)
 
 # Game begins
@@ -176,6 +190,7 @@ def game(turn,num, list_of_players):
         current_player = list_of_players[next(current_turn)]
         if turn < len(list_of_players):
             current_player.player_connection.send(str.encode("Cards"))
+            time.sleep(1)
             for cards in current_player.player_cards:
                 if cards.card_company == 'Share Suspend':
                     global share_suspend_holder
@@ -185,7 +200,7 @@ def game(turn,num, list_of_players):
         for player in list_of_players:
             if player != current_player:
                 player.player_connection.send(str.encode('wait ' + str(current_player.player_name)))
-        time.sleep(2)
+        time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
         ## Trade
         player_choice(current_player,list_of_players)
@@ -194,7 +209,7 @@ def game(turn,num, list_of_players):
         print('\nEnd of turn {}'.format(turn+1))
         current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,'; Amount: ',str(current_player.player_amount), '; \nShares: '])))
         current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
-        time.sleep(2)
+        time.sleep(1)
         turn += 1
 
 def broadcast(clients, msg = None):
@@ -205,16 +220,17 @@ def broadcast(clients, msg = None):
             conn.send(json.dumps(msg).encode())
 
 def threaded_client(connection, flag = 1, ):
-	if flag: 
-		player_name = connection.recv(2048).decode()
-		print(player_name, " joined.")	
-		clients[player_name] = Client
-		print('Number of clients: ' + str(len(clients)))
-		clients[host_name].send(str.encode(player_name + " joined."))
+    if flag: 
+        player_name = connection.recv(2048).decode()
+        print(player_name, " joined.")	
+        clients[player_name] = Client
+        print('Number of clients: ' + str(len(clients)))
+        clients[host_name].send(str.encode(player_name + " joined."))
+
 
 def gameplay():
     list_of_players = player_instance(clients)
-    time.sleep(3)
+    time.sleep(1)
     number_of_players = len(list_of_players)
     
     turn = 0
@@ -257,11 +273,14 @@ def gameplay():
             time.sleep(1)
 
         # share_suspend()
+        global share_suspend_holder
         if share_suspend_holder:
             share_suspend_holder.player_connection.send(str.encode('suspend'))
+            share_suspend_holder = None
+            time.sleep(1)
             if share_suspend(share_suspend_holder.player_connection, prev_list):
-
                 broadcast(clients, 'update')
+                time.sleep(1)
                 for company in com_name_list:
                     broadcast(clients, str(company.company_current_price))
                     time.sleep(1)
@@ -271,7 +290,7 @@ def gameplay():
             broadcast(clients,player.player_shares)
             time.sleep(1)
 
-        time.sleep(3)
+        time.sleep(1)
         turn = 0
         next(current_turn)
         assign_cards(list_of_cards,list_of_players)
@@ -282,8 +301,10 @@ def gameplay():
             all_player.player_amount += all_player.player_shares[shares] * list_of_companies[shares]
 
         broadcast(clients,' '.join(['Name: ',all_player.player_name,'; Amount: ',str(all_player.player_amount)]))
+        time.sleep(1)
 
     clients[host_name].send(str.encode('play again'))
+    time.sleep(1)
     answer = clients[host_name].recv(512).decode('utf-8')
     if answer == 'Y' or answer == 'y':
         gameplay()
@@ -319,7 +340,7 @@ if __name__ == "__main__":
             if count == num_of_players and count == len(clients):
                 num_of_players = 0
                 broadcast(clients, ', '.join(clients.keys()))
-                time.sleep(3)
+                time.sleep(2)
                 gameplay()
             else:
                 continue
