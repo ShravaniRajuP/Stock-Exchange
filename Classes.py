@@ -19,7 +19,10 @@ class Company():
         self.company_name = name
         self.company_starting_price = sp
         self.company_current_price = sp
-        self.company_total_shares = 200000
+        self.company_total_buy_shares = 200000
+        self.company_total_sell_shares = 200000
+        self.company_owner = []
+        self.company_director = []
 
     def __str__(self):
         return self.company_name

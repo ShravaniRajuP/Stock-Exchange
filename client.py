@@ -3,10 +3,10 @@ import json
 from Classes import Player, Cards, Company
 
 ClientSocket = socket.socket()
-ip = input("Enter the server Ip address : ")
+# ip = input("Enter the server Ip address : ")
 # host = '192.168.0.21' # Hardik's IP
 # host = '192.168.0.14' # Shravani's IP
-host = ip
+host = '192.168.0.11'
 port = 1233
 
 list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
@@ -39,18 +39,21 @@ def print_price_list(com_name_list):
 def player_choice():
     print("\nPrice List: ", end="")
     print_price_list(com_name_list)
-    choice = input("\nEnter your choice(buy/sell/pass): ")
+    choice = input("\nEnter your choice(buy/sell/pass/loan/rights/debenture): ")
     if choice == 'pass' or choice == '':
         # print('pass')
         ClientSocket.send(str.encode(choice))
         return
-    elif choice == 'buy' or choice == 'sell':
+    elif choice == 'buy' or choice == 'sell' or choice == 'ssell' or choice == 'sbuy':
         print("\n")
         # print(list(map(lambda x: x.company_name,com_name_list)))
         com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
-        ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
-        print(choice, shares, com_num)
+        if com_num != '' and shares != '':
+            ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
+            print(choice, shares, com_num)
+        else:
+            player_choice()
     elif choice == 'loan':
         ClientSocket.send(str.encode(choice))
     elif choice == 'debenture':
