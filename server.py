@@ -1,31 +1,14 @@
-import socket
-import os
+import socket, os, time, json, random
 from _thread import start_new_thread
-import time
-import json
-from Classes import Player
-
-ServerSocket = socket.socket()
-host = '0.0.0.0'
-port = 1233
-count = 1
-clients = {}
-
-# ### Step 0: Pre-game initializations
-
 from Classes import Player, Cards, Company
 
-import random
-import time
-
-def create_company(list_of_companies):
+# ### Step 0: Pre-game initializations
+def create_cards(list_of_companies):
     price_range = [-30, -30, 30, 30, -25, -25, 25, 25, -20, -20, 20, 20,
                    -15, -15, 15, 15, -10, -10, 10, 10, -5, -5, 5, 5]
-    list_cards = []
+    list_cards, i, currency_range = [], 0, [-10, 10]
     company_range = [8, 12, 12, 16, 20, 24]
-    currency_range = [-10, 10]
     special = ['Rights', 'Debenture', 'Loan', 'Share Suspend']
-    i = 0
 
     # Company Shares
     for company in list_of_companies.keys():
@@ -38,7 +21,7 @@ def create_company(list_of_companies):
 
     # Rights, Debenture, Loan, Share Suspend
     for i in range(7):
-        list_cards.append(Cards(special[i//2], 0))
+        list_cards.append(Cards(special[i // 2], 0))
 
     for i in currency_range:
         a = [Cards('Currency', i) for j in range(4)]
@@ -48,7 +31,7 @@ def create_company(list_of_companies):
 def assign_cards(list_cards, player_list):
     for player in player_list:
         random.shuffle(list_cards)
-        player.player_cards = sorted(list_cards[:10],key=lambda x: x.card_company)
+        player.player_cards = sorted(list_cards[:10], key = lambda x: x.card_company)
         list_cards = list_cards[10:]
 
 def player_instance(conns):
@@ -59,22 +42,20 @@ def player_instance(conns):
 
 def round_robin(n):
     for i in range(1000):
-        yield i%n
+        yield i % n
 
-# ### Step One: Create Players and List of Cards and Initialize
-list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
-com_name_list = [Company(company,price) for company,price in list_of_companies.items()]
-list_of_cards = create_company(list_of_companies)
-list_of_players = []
-current_turn = None
-share_suspend_holder = None
+def broadcast(clients, msg = None):
+    for conn in clients.values():
+        if type(msg) == str:
+            conn.send(str.encode(msg))
+        else:
+            conn.send(json.dumps(msg).encode())
 
-def reset_game():
-    global list_of_companies
-    list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
-    for com in com_name_list:
-        com.company_current_price = com.company_starting_price
-
+def print_name_amt_shares(current_player):
+    current_player.player_connection.send(str.encode(''.join(['\nName: ', current_player.player_name,\
+        '; Amount: ', str(current_player.player_amount), '; \nShares: '])))
+    current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
+    time.sleep(1)
 
 # Trade - Buy
 def buy(current_player, company, shares):
@@ -82,22 +63,20 @@ def buy(current_player, company, shares):
             shares <= company.company_total_buy_shares:
         current_player.player_amount -= shares * company.company_current_price
         company.company_total_buy_shares -= shares
-        current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0)\
-                                                                                                             + shares
+        current_player.player_shares[company.company_name] = \
+            current_player.player_shares.get(company.company_name,0) + shares
         # if current_player.player_shares[company.company_name] >= 100000:
         #     company.company_owner.append(current_player)
         #     print("{} Owner: {}".format(company.company_name, current_player.player_name))
         # elif current_player.player_shares[company.company_name] >= 50000:
         #     company.company_director.append(current_player)
         #     print("{} Director: {}".format(company.company_name, current_player.player_name))                                                                                               
-        broadcast(clients, current_player.player_name + ',' + ','.join(["buys" , company.company_name, str(shares)]))
-        current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,\
-                                            '; Amount: ',str(current_player.player_amount), '; \nShares: '])))
-        current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
+        broadcast(clients, ', '.join([current_player.player_name, "bought", company.company_name, str(shares)]))
+        print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'buys'))
     else:
-        current_player.player_connection.send(str.encode("Not enough money to buy the shares or not "\
-                                                         +"enough shares available. \n"))
+        current_player.player_connection.send(str.encode("Not enough money to"\
+            " buy the shares or not enough shares available. \n"))
         time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
         time.sleep(1)
@@ -108,19 +87,16 @@ def sell(current_player, company, shares):
     if current_player.player_shares.get(company.company_name,0) >= shares:
         current_player.player_amount += shares*company.company_current_price
         company.company_total_buy_shares += shares
-        current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0) \
-                                                                                                            - shares
+        current_player.player_shares[company.company_name] = \
+            current_player.player_shares.get(company.company_name,0) - shares
         # if current_player in company.company_owner and current_player.player_shares[company.company_name] < 100000:
         #     company.company_owner.remove(current_player)
         #     print("{} not Owner: {}".format(company.company_name, current_player.player_name))
         # elif current_player in company.company_owner and current_player.player_shares[company.company_name] < 50000:
         #     company.company_director.remove(current_player)
         #     print("{} not director: {}".format(company.company_name, current_player.player_name))
-            
-        broadcast(clients, current_player.player_name + ',' + ','.join(["sells" , company.company_name, str(shares)]))
-        current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,\
-                                            '; Amount: ',str(current_player.player_amount), '; \nShares: '])))
-        current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
+        broadcast(clients, ', '.join([current_player.player_name, "sold", company.company_name, str(shares)]))
+        print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'sells'))
     else:
         current_player.player_connection.send(str.encode("Not enough shares to sell. \n"))
@@ -129,19 +105,16 @@ def sell(current_player, company, shares):
         time.sleep(1)
         player_choice(current_player,list_of_players)
 
-
 # Trade - Short Selling
-def ssell(current_player,company,shares):
+def ssell(current_player, company, shares):
     cost = shares*company.company_current_price*2
-    if current_player.player_shares.get(company.company_name,0) <= 0 and current_player.player_amount >= cost:
+    if current_player.player_shares.get(company.company_name,0) <= 0 and \
+        current_player.player_amount >= cost:
         current_player.player_amount -= cost
-        current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0)\
-                                                                                                - shares
-        company.company_total_sell_shares -= shares
-        broadcast(clients, current_player.player_name + ',' + ','.join(["Short sells" , company.company_name, str(shares)]))
-        current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,\
-                                            '; Amount: ',str(current_player.player_amount), '; \nShares: '])))
-        current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
+        current_player.player_shares[company.company_name] = \
+            current_player.player_shares.get(company.company_name,0) - shares
+        company.company_total_sell_shares -= shares       
+        print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'shorts'))
     else:
         current_player.player_connection.send(str.encode("Not enough shares to sell or not enough money. \n"))
@@ -152,16 +125,15 @@ def ssell(current_player,company,shares):
 
 
 # Trade - Short Buying
-def sbuy(current_player,company,shares):
+def sbuy(current_player, company, shares):
     if current_player.player_shares.get(company.company_name,0) <= shares:
-        current_player.player_shares[company.company_name] = current_player.player_shares.get(company.company_name,0)\
-                                                                                                + shares
+        current_player.player_shares[company.company_name] = \
+            current_player.player_shares.get(company.company_name,0) + shares
         current_player.player_amount += shares*company.company_current_price*2
         company.company_total_sell_shares += shares
-        broadcast(clients, current_player.player_name + ',' + ','.join(["does not short sell " , company.company_name, str(shares)]))
-        current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,\
-                                            '; Amount: ',str(current_player.player_amount), '; \nShares: '])))
-        current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
+        broadcast(clients, current_player.player_name + ',' + ','.join(["does not short sell ",\
+            company.company_name, str(shares)]))
+        print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'buys short sold'))
     else:
         current_player.player_connection.send(str.encode("Not enough shares to buy. \n"))
@@ -170,12 +142,10 @@ def sbuy(current_player,company,shares):
         time.sleep(1)
         player_choice(current_player,list_of_players)
 
-
 #Check presence of respective card  
 def card_check(current_player, choice):
     ans = list(filter(lambda x: x.card_company.lower().startswith(choice), current_player.player_cards))
     return len(ans)
-
 
 #Trade - Loan
 def loan(current_player):
@@ -186,26 +156,25 @@ def loan(current_player):
             print("{} {}".format(current_player.player_name,'loans'))
     current_player.player_cards.pop(discard)
     
-
 #Trade - Debenture
 def debenture(current_player, company):
     if company.company_current_price == 0 and current_player.player_shares[company.company_name]:
-        current_player.player_amount += current_player.player_shares[company.company_name] * \
-                                                                    company.company_starting_price
+        current_player.player_amount += \
+            current_player.player_shares[company.company_name] * company.company_starting_price
         current_player.player_shares[company.company_name] = 0
         company.company_total_buy_shares += current_player.player_shares[company.company_name]
-
         print("{} {}".format(current_player.player_name,'debenture'))
 
-
 #Trade - Rights
-def rights(company,lp):
+def rights(company, lp):
     for name in lp:
-        available_shares = min((name.player_shares[company.company_name]//2000) * 1000,company.company_total_buy_shares)
+        available_shares = min((name.player_shares[company.company_name]//2000) * \
+            1000, company.company_total_buy_shares)
         check_amount = name.player_amount - available_shares * 10
         if check_amount < 0:
             max_shares = (name.player_amount//10000)
-            name.player_shares[company.company_name] = name.player_shares[company.company_name] + max_shares * 1000
+            name.player_shares[company.company_name] = name.player_shares[company.company_name] \
+                + max_shares * 1000
             name.player_amount -= max_shares * 10000
             company.company_total_buy_shares -= max_shares*1000
             print(name.player_name,name.player_amount,name.player_shares)
@@ -216,22 +185,21 @@ def rights(company,lp):
     return
 
 # Check Owner
-def check_owner(com,lp):
+def check_owner(com, lp):
     for player in lp:
         if player.player_shares.get(com.company_name,0) >= 100000:
             return player
 
 #Check Director
-def check_director(com,lp):
+def check_director(com, lp):
     dir_list = []
     for player in lp:
         if player.player_shares.get(com.company_name,0) >= 50000:
             dir_list.append(player)
     return dir_list
 
-
 #Round - Share Suspend
-def share_suspend(cp,prev_list):
+def share_suspend(cp, prev_list):
     choice = cp.recv(512).decode('utf-8')
     if choice != str(0):
         print(choice)
@@ -243,17 +211,30 @@ def share_suspend(cp,prev_list):
     else:
         return 0
 
+def share_suspend_check(prev_list):
+    # share_suspend()
+    global share_suspend_holder
+    if share_suspend_holder:
+        share_suspend_holder.player_connection.send(str.encode('suspend'))
+        time.sleep(1)
+        if share_suspend(share_suspend_holder.player_connection, prev_list):
+            broadcast(clients, 'update')
+            time.sleep(1)
+            for company in com_name_list:
+                broadcast(clients, str(company.company_current_price))
+                time.sleep(1)
+        share_suspend_holder = None
 
 # Pass / Buy / Sell (?)
 def player_choice(current_player,lp):
     choice = current_player.player_connection.recv(1024).decode().split(',')
     # try:
-    if choice[0] == 'pass' or choice[0] == '':
+    if choice[0] in ['pass', '']:
         print("{} {}".format(current_player.player_name,choice))
         broadcast(clients, "Passed.")
         time.sleep(1)
         return
-    elif choice[0] == 'buy' or choice[0] == 'sell' or choice[0] == 'sbuy' or choice[0] == 'ssell':
+    elif choice[0] in ['buy', 'sell', 'sbuy', 'ssell']:
         company = com_name_list[int(choice[1])-1]
         if choice[0] == 'buy':
             buy(current_player, company, int(choice[2]))
@@ -264,29 +245,23 @@ def player_choice(current_player,lp):
         else:
             sbuy(current_player,company,int(choice[2]))
         return
-        
-    elif choice[0] == 'loan' or choice[0] == 'debenture' or choice[0] == 'rights':
-        if choice[0] == 'loan' and card_check(current_player, choice[0]):
-            loan(current_player)
-        elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
-            company = com_name_list[int(choice[1])-1]
-            debenture(current_player, company)
-        elif choice[0] == 'rights' and card_check(current_player, choice[0]):
-            company = com_name_list[int(choice[1])-1]
-            rights(company,lp)
-            print("{} {}".format(current_player.player_name,choice))
-
-            for player in lp:
-                if player == current_player:
-                    continue
-                else:
-                    broadcast(clients,' '.join(['\nName: ',player.player_name,'; Amount: ',str(player.player_amount),\
-                                                                                                     '; \nShares: ']))
-                    broadcast(clients,player.player_shares)
-                    time.sleep(1)
-
+    elif choice[0] == 'loan' and card_check(current_player, choice[0]):
+        loan(current_player)
+    elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
+        company = com_name_list[int(choice[1])-1]
+        debenture(current_player, company)
+    elif choice[0] == 'rights' and card_check(current_player, choice[0]):
+        company = com_name_list[int(choice[1])-1]
+        rights(company,lp)
+        print("{} {}".format(current_player.player_name,choice))
+        for player in lp:
+            if player == current_player:
+                continue
+            else:
+                print_name_amt_shares(player)
     return
     # except:
+    #     print('try-except')
     #     current_player.player_connection.send(str.encode('play'))
     #     time.sleep(1)
     #     player_choice(current_player,lp)
@@ -309,32 +284,32 @@ def game(turn,num, list_of_players):
                 player.player_connection.send(str.encode('wait ' + str(current_player.player_name)))
         time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
+        
         ## Trade
         player_choice(current_player,list_of_players)
         
         #End Turn 
         print('End of turn {} \n'.format(turn+1))
-        current_player.player_connection.send(str.encode(' '.join(['\nName: ',current_player.player_name,\
-                                            '; Amount: ',str(current_player.player_amount), '; \nShares: '])))
-        current_player.player_connection.send(json.dumps(current_player.player_shares).encode())
-        time.sleep(1)
+        # print_name_amt_shares(current_player)
         turn += 1
 
-def broadcast(clients, msg = None):
-    for conn in clients.values():
-        if type(msg) == str:
-            conn.send(str.encode(msg))
-        else:
-            conn.send(json.dumps(msg).encode())
+def reset_game():
+    global list_of_companies
+    list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
+    for com in com_name_list:
+        com.company_current_price = com.company_starting_price
 
-def threaded_client(connection, flag = 1, ):
-    if flag: 
-        player_name = connection.recv(2048).decode()
-        print(player_name, " joined.")	
-        clients[player_name] = Client
-        print('Number of clients: ' + str(len(clients)))
-        clients[host_name].send(str.encode(player_name + " joined."))
-
+def game_replay():
+    clients[host_name].send(str.encode('play again'))
+    time.sleep(1)
+    answer = clients[host_name].recv(512).decode('utf-8')
+    if answer == 'Y' or answer == 'y':
+        reset_game()
+        gameplay()
+    elif answer == 'N' or answer == 'n':
+        server()
+    else:
+        game_replay()
 
 def gameplay():
     list_of_players = player_instance(clients)
@@ -348,8 +323,8 @@ def gameplay():
     current_turn = round_robin(number_of_players)
 
     # ### Step Two: Start the game
-    while rounds < 10:
-        game(turn,3*number_of_players, list_of_players)
+    while rounds < 2:
+        game(turn, 3 * number_of_players, list_of_players)
         final_curr = 0
         prev_list = list_of_companies.copy()
                 
@@ -359,7 +334,6 @@ def gameplay():
                 final = sum(list(map(lambda x: x.card_value, list(ans))))
                 com_name_list[idx].company_current_price += final
                 list_of_companies[com] += final
-            
             ans_curr = filter(lambda x: x.card_company == 'Currency', cp.player_cards)
             final_curr += sum(list(map(lambda x: x.card_value, list(ans_curr))))       
         
@@ -374,9 +348,10 @@ def gameplay():
             broadcast(clients, str(company.company_current_price))
             time.sleep(1)
 
+        owner = None
         for com in com_name_list:
             if com.company_total_buy_shares < 100000:
-                owner = check_owner(com,list_of_players)
+                owner = check_owner(com, list_of_players)
                 if owner:
                     least = [min(x.player_shares.values()) for x in list_of_players]
                     owner.player_connection.send(str.encode("RN"))
@@ -385,25 +360,12 @@ def gameplay():
             elif com.company_total_buy_shares < 150000:
                 director = check_director(com,list_of_players)
 
-
         if owner:
             owner.player_connection.send(str.encode("RN"))
             time.sleep(1)
             ans = owner[0].player_connection.recv(512).decode('utf-8')
 
-        
-        # share_suspend()
-        global share_suspend_holder
-        if share_suspend_holder:
-            share_suspend_holder.player_connection.send(str.encode('suspend'))
-            time.sleep(1)
-            if share_suspend(share_suspend_holder.player_connection, prev_list):
-                broadcast(clients, 'update')
-                time.sleep(1)
-                for company in com_name_list:
-                    broadcast(clients, str(company.company_current_price))
-                    time.sleep(1)
-            share_suspend_holder = None
+        share_suspend_check(prev_list)
 
         # Squaring off the short shares
         for all_player in list_of_players:
@@ -420,10 +382,7 @@ def gameplay():
 
         # Braodcasting player details 
         for player in list_of_players:
-            broadcast(clients,' '.join(['\nName: ',player.player_name,\
-                                    '; Amount: ',str(player.player_amount), '; \nShares: ']))
-            broadcast(clients,player.player_shares)
-            time.sleep(1)
+            print_name_amt_shares(player)
 
         time.sleep(1)
         turn = 0
@@ -435,39 +394,28 @@ def gameplay():
     for all_player in list_of_players:
         for shares in all_player.player_shares.keys():
             all_player.player_amount += all_player.player_shares[shares] * list_of_companies[shares]
-
         broadcast(clients,' '.join(['Name: ',all_player.player_name,'; Amount: ',str(all_player.player_amount)]))
         time.sleep(1)
+        game_replay()
 
-    clients[host_name].send(str.encode('play again'))
-    time.sleep(1)
-    answer = clients[host_name].recv(512).decode('utf-8')
-    if answer == 'Y' or answer == 'y':
-        gameplay()
-    else:
-        ServerSocket.close()
+ServerSocket = socket.socket()
+host, port, clients, list_of_players, host_name = '', 1233, {}, [], None
+count, current_turn, share_suspend_holder = 1, None, None
+list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
+com_name_list = [Company(company,price) for company,price in list_of_companies.items()]
+list_of_cards = create_cards(list_of_companies)
 
-if __name__ == "__main__":
-    try:
-        ServerSocket.bind((host, port))
-    except socket.error as e:
-        print(str(e))
-    ip = socket.gethostbyname(socket.gethostname())
-    print("IP address for connection : ")
-    print(ip)
-    print('Waiting for a host..')
-    ServerSocket.listen(5)
-    Client, address = ServerSocket.accept()
-    host_name = Client.recv(1024).decode()
-    print("Host Name: ",host_name)
-    Client.send(str.encode('host'))
+def threaded_client(connection, flag = 1, ):
+    if flag: 
+        player_name = connection.recv(2048).decode()
+        print(player_name, " joined.")	
+        clients[player_name] = connection
+        print('Number of clients: ' + str(len(clients)))
+        clients[host_name].send(str.encode(player_name + " joined."))
 
-    num_of_players = int(Client.recv(1024).decode())
-    print("Number of Players = ",str(num_of_players))
-    clients[host_name] = Client
-    start_new_thread(threaded_client, (Client, 0, ))
-
+def connections(num_of_players):
     while True:
+        global count
         if count < num_of_players:
             Client, address = ServerSocket.accept()
             count += 1
@@ -480,3 +428,30 @@ if __name__ == "__main__":
                 gameplay()
             else:
                 continue
+
+def host_connections():
+    print('Waiting for a host..')
+    ServerSocket.listen(5)
+    Client, address = ServerSocket.accept()
+    global host_name
+    host_name = Client.recv(1024).decode()
+    print("Host Name: ",host_name)
+    Client.send(str.encode('host'))
+    num_of_players = int(Client.recv(1024).decode())
+    print("Number of Players = ",str(num_of_players))
+    clients[host_name] = Client
+    start_new_thread(threaded_client, (Client, 0, ))
+    connections(num_of_players)
+
+def server():
+    try:
+        ServerSocket.bind((host, port))
+    except socket.error as e:
+        print(str(e))
+    ip = socket.gethostbyname(socket.gethostname())
+    print("IP address for connection : ")
+    print(ip)
+    host_connections()
+    
+if __name__ == "__main__":
+    server()

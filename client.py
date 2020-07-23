@@ -6,7 +6,8 @@ ClientSocket = socket.socket()
 # ip = input("Enter the server Ip address : ")
 # host = '192.168.0.21' # Hardik's IP
 # host = '192.168.0.14' # Shravani's IP
-host = '192.168.0.11'
+# host = '192.168.0.11'
+host = '192.168.0.171'
 port = 1233
 
 list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
@@ -20,7 +21,9 @@ except socket.error as e:
 
 def reset_price():
     global list_of_companies
+    global com_name_list
     list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
+    com_name_list = [Company(company,price) for company,price in list_of_companies.items()]
 
 def host_file():
     Input = input("Number of players: ")
@@ -51,9 +54,8 @@ def player_choice():
         shares = input("Enter the number of shares: ")
         if com_num != '' and shares != '':
             ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
-            print(choice, shares, com_num)
-        else:
-            player_choice()
+            # print(choice, shares, com_num)
+            return
     elif choice == 'loan':
         ClientSocket.send(str.encode(choice))
     elif choice == 'debenture':
@@ -64,7 +66,7 @@ def player_choice():
         ClientSocket.send(str.encode(choice + ', ' + com_num))
     else:
         player_choice()
-    
+    return
 
 def wait(data):
     name = data.split(" ")
@@ -92,27 +94,31 @@ def check_response(data):
     elif data == 'suspend':
         print("Entered suspend statement")
         Input = input('Do you want to use Share Suspend? (Enter Company Number / 0): ')
-        if int(Input) < 0 or int(Input) > 6:
+        if Input.isdigit() and (int(Input) < 0 or int(Input) > 6):
             check_response('suspend')
         ClientSocket.send(str.encode(Input))
     elif data == 'play again':
-        Input = input("Do you want to play again? (Y/N)")
+        Input = input("Do you want to play again(Y/N)? ")
         if Input.lower() == 'n':
-            ClientSocket.close()
+            ClientSocket.send(str.encode(Input))
+            return 0
         else:
             ClientSocket.send(str.encode(Input))
             reset_price()
+    elif 'Shares' in data:
+        print(data, end = ' ')
     else:
         print(data)
-    return
+    return 1
 
+flag = 1
 Input = input('Enter Your Name: ')
 ClientSocket.send(str.encode(Input))
 Response = ClientSocket.recv(1024).decode('utf-8')
 check_response(Response)
 print_price_list(com_name_list)
-while True:
+while flag:
     Response = ClientSocket.recv(1024).decode('utf-8')
     # print(Response)
-    check_response(Response)
+    flag = check_response(Response)
 ClientSocket.close()
