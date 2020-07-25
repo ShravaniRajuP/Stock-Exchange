@@ -29,10 +29,13 @@ def create_cards(list_of_companies):
     return list_cards
 
 def assign_cards(list_cards, player_list):
+    card_list = []
     for player in player_list:
         random.shuffle(list_cards)
         player.player_cards = sorted(list_cards[:10], key = lambda x: x.card_company)
+        card_list += list_cards[:10]
         list_cards = list_cards[10:]
+    return card_list
 
 def player_instance(conns):
     lP = []
@@ -189,25 +192,44 @@ def check_owner(com, lp):
     for player in lp:
         if player.player_shares.get(com.company_name,0) >= 100000:
             return player
-
+    return None
 #Check Director
 def check_director(com, lp):
-    dir_list = []
+    dir_list = {}
+    dir_list['fp'] = None
+    dir_list['mv'] = 0
+    dir_list['players'] = []
     for player in lp:
         if player.player_shares.get(com.company_name,0) >= 50000:
-            dir_list.append(player)
+            if not dir_list['fp']:
+                dir_list['fp'] = player
+            dir_list['players'].append(player.player_name)
+            ans = list(filter(lambda x: x.card_company == com.company_name, player.player_cards))
+            l1 = min(ans, key=lambda x: x.card_value,default=0)
+            if l1:
+                dir_list['mv'] = min(dir_list['mv'],l1.card_value)
     return dir_list
 
 #Round - Share Suspend
 def share_suspend(cp, prev_list):
     choice = cp.recv(512).decode('utf-8')
     if choice != str(0):
-        print(choice)
-        company = com_name_list[int(choice) - 1]
-        company.company_current_price = prev_list[company.company_name]
         global list_of_companies
-        list_of_companies[company.company_name] = prev_list[company.company_name]
-        return 1
+        company = com_name_list[int(choice) - 1]
+        if company.company_owner:
+            company.company_owner.player_connection.send(str.encode("RC {}".format(company.company_name)))
+            choice = company.company_owner.player_connection.recv(512).decode('utf-8')
+            if choice == "Y":
+                company.company_current_price = list_of_companies[company.company_name]
+                return 1
+            else:
+                company.company_current_price = prev_list[company.company_name]
+                list_of_companies[company.company_name] = prev_list[company.company_name]
+                return 1
+        else:
+            company.company_current_price = prev_list[company.company_name]
+            list_of_companies[company.company_name] = prev_list[company.company_name]
+            return 1
     else:
         return 0
 
@@ -217,12 +239,7 @@ def share_suspend_check(prev_list):
     if share_suspend_holder:
         share_suspend_holder.player_connection.send(str.encode('suspend'))
         time.sleep(1)
-        if share_suspend(share_suspend_holder.player_connection, prev_list):
-            broadcast(clients, 'update')
-            time.sleep(1)
-            for company in com_name_list:
-                broadcast(clients, str(company.company_current_price))
-                time.sleep(1)
+        share_suspend(share_suspend_holder.player_connection, prev_list)
         share_suspend_holder = None
 
 # Pass / Buy / Sell (?)
@@ -270,15 +287,6 @@ def player_choice(current_player,lp):
 def game(turn,num, list_of_players): 
     while turn < num:
         current_player = list_of_players[next(current_turn)]
-        if turn < len(list_of_players):
-            current_player.player_connection.send(str.encode("Cards"))
-            time.sleep(1)
-            for cards in current_player.player_cards:
-                if cards.card_company == 'Share Suspend':
-                    global share_suspend_holder
-                    share_suspend_holder = current_player
-                current_player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
-                time.sleep(1)
         for player in list_of_players:
             if player != current_player:
                 player.player_connection.send(str.encode('wait ' + str(current_player.player_name)))
@@ -318,25 +326,34 @@ def gameplay():
     
     turn = 0
     rounds = 0
-    assign_cards(list_of_cards,list_of_players)
+    card_list = assign_cards(list_of_cards,list_of_players)
     global current_turn
     current_turn = round_robin(number_of_players)
 
     # ### Step Two: Start the game
-    while rounds < 2:
+    while rounds < 6:
+        for player in list_of_players:
+            player.player_connection.send(str.encode("Cards"))
+            time.sleep(1)
+            for cards in player.player_cards:
+                if cards.card_company == 'Share Suspend':
+                    global share_suspend_holder
+                    share_suspend_holder = player
+                player.player_connection.send(json.dumps({cards.card_company: cards.card_value}).encode('utf-8'))
+                time.sleep(1)
+
         game(turn, 3 * number_of_players, list_of_players)
         final_curr = 0
         prev_list = list_of_companies.copy()
-                
-        for cp in list_of_players:
-            for idx, com in enumerate(list_of_companies.keys()):
-                ans = filter(lambda x: x.card_company == com, cp.player_cards)
-                final = sum(list(map(lambda x: x.card_value, list(ans))))
-                com_name_list[idx].company_current_price += final
-                list_of_companies[com] += final
-            ans_curr = filter(lambda x: x.card_company == 'Currency', cp.player_cards)
-            final_curr += sum(list(map(lambda x: x.card_value, list(ans_curr))))       
+        for company in com_name_list:
+            ans = filter(lambda x: x.card_company == company.company_name, card_list)
+            final = sum(list(map(lambda x: x.card_value, list(ans))))
+            company.company_current_price += final
+            list_of_companies[company.company_name] += final
         
+        ans_curr = filter(lambda x: x.card_company == 'Currency', card_list)
+        final_curr = sum(list(map(lambda x: x.card_value, list(ans_curr))))
+          
         for c in com_name_list:
             c.company_current_price = max(c.company_current_price, 0)
             
@@ -348,24 +365,51 @@ def gameplay():
             broadcast(clients, str(company.company_current_price))
             time.sleep(1)
 
-        owner = None
+        # Check Owner and Director for each company
+
+
+        
         for com in com_name_list:
-            if com.company_total_buy_shares < 100000:
-                owner = check_owner(com, list_of_players)
-                if owner:
-                    least = [min(x.player_shares.values()) for x in list_of_players]
-                    owner.player_connection.send(str.encode("RN"))
-                    time.sleep(1)
-                    ans = owner[0].player_connection.recv(512).decode('utf-8')
+            if com.company_total_buy_shares <= 100000:
+                com.company_owner = check_owner(com, list_of_players)
+                if com.company_owner:
+                    com.company_owner.player_connection.send(str.encode("RN"))
+                    ans = list(filter(lambda x: x.card_company == com.company_name, card_list))
+                    l1 = min(ans, key=lambda x: x.card_value,default=0)
+                    if l1:
+                        least = min(l1.card_value,0)
+                        for cards in ans:
+                            com.company_owner.player_connection.send(json.dumps({cards.card_company: cards.card_value}).\
+                                                                                                        encode('utf-8'))
+                            time.sleep(1)
+                        com.company_owner.player_connection.send(str.encode("end"))
+                        choice = com.company_owner.player_connection.recv(512).decode('utf-8').upper()
+                        if choice == "Y":
+                            com.company_current_price = max(list_of_companies[com.company_name] - least,0)
+
             elif com.company_total_buy_shares < 150000:
                 director = check_director(com,list_of_players)
-
-        if owner:
-            owner.player_connection.send(str.encode("RN"))
-            time.sleep(1)
-            ans = owner[0].player_connection.recv(512).decode('utf-8')
+                if director['fp']:
+                    director['fp'].player_connection.send(str.encode('dir,' + ','.join(director['players'])))
+                    time.sleep(1)
+                    choice = director['fp'].player_connection.recv(512).decode('utf-8').upper()
+                    if choice == "Y":
+                        com.company_current_price = max(list_of_companies[com.company_name] - director['mv'],0)
+        # if owner:
+        #     owner.player_connection.send(str.encode("RN"))
+        #     time.sleep(1)
+        #     ans = owner[0].player_connection.recv(512).decode('utf-8')
 
         share_suspend_check(prev_list)
+
+        broadcast(clients, 'update')
+        time.sleep(1)
+        for company in com_name_list:
+            broadcast(clients, str(company.company_current_price))
+            time.sleep(1)
+        
+        for c in com_name_list:
+            list_of_companies[c.company_name] = c.company_current_price
 
         # Squaring off the short shares
         for all_player in list_of_players:
@@ -387,7 +431,7 @@ def gameplay():
         time.sleep(1)
         turn = 0
         next(current_turn)
-        assign_cards(list_of_cards,list_of_players)
+        card_list = assign_cards(list_of_cards,list_of_players)
         rounds += 1
 
     #Final calculation of each player  

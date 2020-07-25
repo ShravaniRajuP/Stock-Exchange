@@ -6,8 +6,8 @@ ClientSocket = socket.socket()
 # ip = input("Enter the server Ip address : ")
 # host = '192.168.0.21' # Hardik's IP
 # host = '192.168.0.14' # Shravani's IP
-# host = '192.168.0.11'
-host = '192.168.0.171'
+host = '192.168.0.11'
+# host = '192.168.0.171'
 port = 1233
 
 list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
@@ -52,10 +52,11 @@ def player_choice():
         # print(list(map(lambda x: x.company_name,com_name_list)))
         com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
-        if com_num != '' and shares != '':
+        if com_num == '' or shares == '':
+            player_choice()
+        else:
             ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
             # print(choice, shares, com_num)
-            return
     elif choice == 'loan':
         ClientSocket.send(str.encode(choice))
     elif choice == 'debenture':
@@ -107,6 +108,22 @@ def check_response(data):
             reset_price()
     elif 'Shares' in data:
         print(data, end = ' ')
+    elif data.startswith("RN"):
+        while data != "end":
+            data = ClientSocket.recv(1024).decode('utf-8')
+            print(data)
+        Input = input("These are the cards, do you want to remove the highest negative card?")
+        ClientSocket.send(str.encode(Input))
+    elif data.startswith("dir"):
+        
+        Input = input("These are the cards, do you want to remove the highest negative card?")
+        ClientSocket.send(str.encode(Input))
+    elif data.startswith("RN"):
+        while data != "end":
+            data = ClientSocket.recv(1024).decode('utf-8')
+            print(data)
+        Input = input("These are the cards, do you want to remove the highest negative card?")
+        ClientSocket.send(str.encode(Input))
     else:
         print(data)
     return 1

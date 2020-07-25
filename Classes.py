@@ -1,5 +1,5 @@
 class Player():
-    def __init__(self, name, conn = None, amount = 600000):
+    def __init__(self, name, conn = None, amount = 8000000):
         self.player_name = name
         self.player_amount = amount
         self.player_cards = []
@@ -21,7 +21,7 @@ class Company():
         self.company_current_price = sp
         self.company_total_buy_shares = 200000
         self.company_total_sell_shares = 200000
-        self.company_owner = []
+        self.company_owner = None
         self.company_director = []
 
     def __str__(self):
