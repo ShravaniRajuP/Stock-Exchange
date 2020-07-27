@@ -116,7 +116,8 @@ def ssell(current_player, company, shares):
         current_player.player_amount -= cost
         current_player.player_shares[company.company_name] = \
             current_player.player_shares.get(company.company_name,0) - shares
-        company.company_total_sell_shares -= shares       
+        company.company_total_sell_shares -= shares
+        broadcast(clients, ', '.join([current_player.player_name, "shorts", company.company_name, str(shares)]))  
         print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'shorts'))
     else:
@@ -158,6 +159,7 @@ def loan(current_player):
             discard = idx
             print("{} {}".format(current_player.player_name,'loans'))
     current_player.player_cards.pop(discard)
+    print_name_amt_shares(current_player)
     
 #Trade - Debenture
 def debenture(current_player, company):
@@ -169,22 +171,25 @@ def debenture(current_player, company):
         print("{} {}".format(current_player.player_name,'debenture'))
 
 #Trade - Rights
-def rights(company, lp):
-    for name in lp:
-        available_shares = min((name.player_shares[company.company_name]//2000) * \
+def rights(company, lp, name, cp):
+    broadcast(clients, ', '.join([cp.player_name, " invoked rights in ", company.company_name]))
+    for _ in range(len(lp)):
+        available_shares = min((cp.player_shares[company.company_name]//2000) * \
             1000, company.company_total_buy_shares)
-        check_amount = name.player_amount - available_shares * 10
+        check_amount = cp.player_amount - available_shares * 10
         if check_amount < 0:
-            max_shares = (name.player_amount//10000)
-            name.player_shares[company.company_name] = name.player_shares[company.company_name] \
+            max_shares = (cp.player_amount//10000)
+            cp.player_shares[company.company_name] = cp.player_shares[company.company_name] \
                 + max_shares * 1000
-            name.player_amount -= max_shares * 10000
+            cp.player_amount -= max_shares * 10000
             company.company_total_buy_shares -= max_shares*1000
-            print(name.player_name,name.player_amount,name.player_shares)
+            print(cp.player_name,cp.player_amount,cp.player_shares)
         else:
-            name.player_shares[company.company_name] += available_shares*1000
-            name.player_amount = check_amount
+            cp.player_shares[company.company_name] += available_shares
+            cp.player_amount = check_amount
             company.company_total_buy_shares -= available_shares
+        cp = lp[next(name)]
+    
     return
 
 # Check Owner
@@ -269,7 +274,9 @@ def player_choice(current_player,lp):
         debenture(current_player, company)
     elif choice[0] == 'rights' and card_check(current_player, choice[0]):
         company = com_name_list[int(choice[1])-1]
-        rights(company,lp)
+        print("Current player before rights  {}".format(current_player.player_name))
+        rights(company,lp, current_turn, current_player)
+        print("Current player after rights  {}".format(current_player.player_name))
         print("{} {}".format(current_player.player_name,choice))
         for player in lp:
             if player == current_player:
@@ -387,7 +394,7 @@ def gameplay():
                         if choice == "Y":
                             com.company_current_price = max(list_of_companies[com.company_name] - least,0)
 
-            elif com.company_total_buy_shares < 150000:
+            elif com.company_total_buy_shares <= 150000:
                 director = check_director(com,list_of_players)
                 if director['fp']:
                     director['fp'].player_connection.send(str.encode('dir,' + ','.join(director['players'])))
@@ -418,7 +425,8 @@ def gameplay():
                     all_player.player_amount += (shares*prev_list[com]*-2) + \
                                                 ((prev_list[com] - list_of_companies[com])*shares*-1)
                     all_player.player_shares[com] = 0
-            all_player.player_amount *= (1+final_curr/100)
+            all_player.player_amount *= 1+(final_curr/100)
+            all_player.player_amount = (all_player.player_amount // 1000)*1000
 
         # Resetting total short shares to maximum
         for com in com_name_list:

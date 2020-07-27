@@ -1,5 +1,5 @@
 class Player():
-    def __init__(self, name, conn = None, amount = 8000000):
+    def __init__(self, name, conn = None, amount = 600000):
         self.player_name = name
         self.player_amount = amount
         self.player_cards = []

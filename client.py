@@ -3,11 +3,10 @@ import json
 from Classes import Player, Cards, Company
 
 ClientSocket = socket.socket()
-# ip = input("Enter the server Ip address : ")
-# host = '192.168.0.21' # Hardik's IP
-# host = '192.168.0.14' # Shravani's IP
-host = '192.168.0.11'
+ip = input("Enter the server Ip address : ")
+# host = '192.168.0.11'
 # host = '192.168.0.171'
+# ip = '52.9.147.73'
 port = 1233
 
 list_of_companies = {'Wockhardt': 20, 'HDFC': 25, 'TATA': 40, 'ONGC': 55, 'Reliance': 75, 'Infosys': 80}
@@ -15,7 +14,7 @@ com_name_list = [Company(company,price) for company,price in list_of_companies.i
 
 print('Waiting for connection')
 try:
-    ClientSocket.connect((host, port))
+    ClientSocket.connect((ip, port))
 except socket.error as e:
     print(str(e))
 
@@ -27,7 +26,10 @@ def reset_price():
 
 def host_file():
     Input = input("Number of players: ")
-    ClientSocket.send(str.encode(Input))
+    if not Input or Input == '' or not Input.isdigit():
+        host_file()
+    else:
+        ClientSocket.send(str.encode(Input))
 
 def non_hostfile():
     print("Waiting for the host to start the game.")
@@ -52,6 +54,9 @@ def player_choice():
         # print(list(map(lambda x: x.company_name,com_name_list)))
         com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
+        if int(shares)%1000:
+            print("Enter shares in multiple of 1000")
+            shares = input("Enter the number of shares: ")
         if com_num == '' or shares == '':
             player_choice()
         else:
@@ -61,10 +66,16 @@ def player_choice():
         ClientSocket.send(str.encode(choice))
     elif choice == 'debenture':
         com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
-        ClientSocket.send(str.encode(choice + ', ' + com_num))
+        if not com_num or com_num == '':
+            player_choice()
+        else:
+            ClientSocket.send(str.encode(choice + ', ' + com_num))
     elif choice == 'rights':
         com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
-        ClientSocket.send(str.encode(choice + ', ' + com_num))
+        if not com_num or com_num == '':
+            player_choice()
+        else:
+            ClientSocket.send(str.encode(choice + ', ' + com_num))
     else:
         player_choice()
     return
@@ -97,7 +108,8 @@ def check_response(data):
         Input = input('Do you want to use Share Suspend? (Enter Company Number / 0): ')
         if Input.isdigit() and (int(Input) < 0 or int(Input) > 6):
             check_response('suspend')
-        ClientSocket.send(str.encode(Input))
+        else:
+            ClientSocket.send(str.encode(Input))
     elif data == 'play again':
         Input = input("Do you want to play again(Y/N)? ")
         if Input.lower() == 'n':
@@ -112,18 +124,24 @@ def check_response(data):
         while data != "end":
             data = ClientSocket.recv(1024).decode('utf-8')
             print(data)
-        Input = input("These are the cards, do you want to remove the highest negative card?")
-        ClientSocket.send(str.encode(Input))
+        Input = input("Do you want to remove the highest negative card (Y/N)?")
+        if not Input or Input == '':
+            Input = input("Do you want to remove the highest negative card (Y/N)?")
+        else:
+            ClientSocket.send(str.encode(Input))
     elif data.startswith("dir"):
-        
-        Input = input("These are the cards, do you want to remove the highest negative card?")
-        ClientSocket.send(str.encode(Input))
-    elif data.startswith("RN"):
-        while data != "end":
-            data = ClientSocket.recv(1024).decode('utf-8')
-            print(data)
-        Input = input("These are the cards, do you want to remove the highest negative card?")
-        ClientSocket.send(str.encode(Input))
+        players = data.split(' ')[1]
+        Input = input("Remove highest negative card among from these players {}?".format(players))
+        if not Input or Input == '':
+            Input = input("Remove highest negative card among from these players {}?".format(players))
+        else:
+            ClientSocket.send(str.encode(Input))
+    elif data.startswith("RC"):
+        Input = input("{} has been share suspended. Do you want to remove share suspend (Y/N)?".format(data.split(' ')[1]))
+        if not Input or Input == '':
+            Input = input("{} has been share suspended. Do you want to remove share suspend (Y/N)?".format(data.split(' ')[1]))
+        else:
+            ClientSocket.send(str.encode(Input))
     else:
         print(data)
     return 1
