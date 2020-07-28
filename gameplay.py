@@ -86,10 +86,6 @@ def gameplay():
 
         # Check Owner and Director for each company
         owner_director(com_name_list, list_of_players, card_list, list_of_companies)
-        # if owner:
-        #     owner.player_connection.send(str.encode("RN"))
-        #     time.sleep(1)
-        #     ans = owner[0].player_connection.recv(512).decode('utf-8')
 
         share_suspend_check(prev_list)
 
