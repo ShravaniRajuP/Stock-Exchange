@@ -3,7 +3,7 @@ import json
 from Classes import Player, Cards, Company
 
 ClientSocket = socket.socket()
-ip = input("Enter the server Ip address : ")
+host = input("Enter the server Ip address : ")
 # host = '192.168.0.11'
 # host = '192.168.0.171'
 # ip = '52.9.147.73'
@@ -14,7 +14,7 @@ com_name_list = [Company(company,price) for company,price in list_of_companies.i
 
 print('Waiting for connection')
 try:
-    ClientSocket.connect((ip, port))
+    ClientSocket.connect((host, port))
 except socket.error as e:
     print(str(e))
 
