@@ -15,7 +15,7 @@ def connections(num_of_players):
             Client, address = ServerSocket.accept()
             address
             count += 1
-            start_new_thread(threaded_client, (Client))
+            start_new_thread(threaded_client, (Client,))
         else:
             if count == num_of_players and count == len(clients):
                 num_of_players = 0

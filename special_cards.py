@@ -41,6 +41,7 @@ def rights(company, lp, name, cp):
             cp.player_shares[company.company_name] += available_shares
             cp.player_amount = check_amount
             company.company_total_buy_shares -= available_shares
+        print_name_amt_shares(cp)
         cp = lp[next(name)]
     card_discard(cp, 'Rights')
     return

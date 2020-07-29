@@ -113,13 +113,15 @@ def gameplay():
             com.company_total_sell_shares = 200000
 
         # Braodcasting player details 
-        for player in list_of_players:
-            print_name_amt_shares(player)
+        for current_player in list_of_players:
+            broadcast(clients,''.join(['\nName: ', current_player.player_name,\
+                            '; Amount: ', str(current_player.player_amount), '; \nShares: ']))
+            broadcast(clients,current_player.player_shares)
+            time.sleep(1)
 
-        time.sleep(1)
+        
         turn = 0
-        set_current_turn(next(current_turn))
-        current_turn = get_current_turn()
+        next(current_turn)
         set_card_list_full(assign_cards(list_of_cards, list_of_players))
         card_list = get_card_list()
         rounds += 1

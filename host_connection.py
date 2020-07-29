@@ -8,12 +8,9 @@ def host_connections():
     ServerSocket = get_serversocket()
     print('Waiting for a host..')
     ServerSocket.listen(5) # error in replay - invalid argument, maybe related to binding. try
-    print('listening')
     Client, address = ServerSocket.accept()
-    print('accepted')
     address
     host_name = Client.recv(1024).decode()
-    print('got : ', host_name)
     set_host_name(host_name)
     print("Host Name: ",host_name)
     Client.send(str.encode('host'))

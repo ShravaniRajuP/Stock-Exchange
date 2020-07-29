@@ -12,45 +12,45 @@ def player_choice(current_player, lp):
     global list_of_players
     list_of_players = lp
     choice = current_player.player_connection.recv(1024).decode().split(',')
-    try:
-        if choice[0] in ['pass', '']:
-            print("{} {}".format(current_player.player_name, choice[0]))
-            broadcast(clients, current_player.player_name + " passed.")
-            time.sleep(1)
-            return
-        elif choice[0] in ['buy', 'sell', 'sbuy', 'ssell']:
-            company = com_name_list[int(choice[1])-1]
-            if choice[0] == 'buy':
-                buy(clients, current_player, company, int(choice[2]))
-            elif choice[0] == 'sell':
-                sell(clients, current_player, company, int(choice[2]))
-            elif choice[0] == 'ssell':
-                ssell(clients, current_player,company,int(choice[2]))
-            else:
-                sbuy(clients, current_player,company,int(choice[2]))
-            return
-        elif choice[0] == 'loan' and card_check(current_player, choice[0]):
-            loan(current_player)
-        elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
-            company = com_name_list[int(choice[1])-1]
-            debenture(current_player, company)
-        elif choice[0] == 'rights' and card_check(current_player, choice[0]):
-            company = com_name_list[int(choice[1])-1]
-            print("Current player before rights  {}".format(current_player.player_name))
-            rights(company,lp, current_turn, current_player)
-            print("Current player after rights  {}".format(current_player.player_name))
-            print("{} {}".format(current_player.player_name,choice))
-            for player in lp:
-                if player == current_player:
-                    continue
-                else:
-                    print_name_amt_shares(player)
-        return
-    except:
-        print('try-except')
-        current_player.player_connection.send(str.encode('play'))
+    # try:
+    if choice[0] in ['pass', '']:
+        print("{} {}".format(current_player.player_name, choice[0]))
+        broadcast(clients, current_player.player_name + " passed.")
         time.sleep(1)
-        player_choice(current_player,lp)
+        return
+    elif choice[0] in ['buy', 'sell', 'sbuy', 'ssell']:
+        company = com_name_list[int(choice[1])-1]
+        if choice[0] == 'buy':
+            buy(clients, current_player, company, int(choice[2]))
+        elif choice[0] == 'sell':
+            sell(clients, current_player, company, int(choice[2]))
+        elif choice[0] == 'ssell':
+            ssell(clients, current_player,company,int(choice[2]))
+        else:
+            sbuy(clients, current_player,company,int(choice[2]))
+        return
+    elif choice[0] == 'loan' and card_check(current_player, choice[0]):
+        loan(current_player)
+    elif choice[0] == 'debenture' and card_check(current_player, choice[0]):
+        company = com_name_list[int(choice[1])-1]
+        debenture(current_player, company)
+    elif choice[0] == 'rights' and card_check(current_player, choice[0]):
+        company = com_name_list[int(choice[1])-1]
+        print("Current player before rights  {}".format(current_player.player_name))
+        rights(company,lp, current_turn, current_player)
+        print("Current player after rights  {}".format(current_player.player_name))
+        print("{} {}".format(current_player.player_name,choice))
+        for player in lp:
+            if player == current_player:
+                continue
+            else:
+                print_name_amt_shares(player)
+    return
+    # except:
+    #     print('try-except')
+    #     current_player.player_connection.send(str.encode('play'))
+    #     time.sleep(1)
+    #     player_choice(current_player,lp)
 
 # Trade - Buy
 def buy(clients, current_player, company, shares):

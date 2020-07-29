@@ -54,10 +54,10 @@ def player_choice():
         # print(list(map(lambda x: x.company_name,com_name_list)))
         com_num = input("Enter the company number (1. Wockhardt, 2. HDFC, 3. TATA, 4. ONGC, 5. Reliance, 6. Infosys): ")
         shares = input("Enter the number of shares: ")
-        if int(shares)%1000:
-            print("Enter shares in multiple of 1000")
-            shares = input("Enter the number of shares: ")
         if com_num == '' or shares == '':
+            player_choice()
+        elif int(shares)%1000:
+            print("Enter shares in multiple of 1000")
             player_choice()
         else:
             ClientSocket.send(str.encode(choice +', '+ com_num +', '+ shares))
@@ -106,7 +106,9 @@ def check_response(data):
     elif data == 'suspend':
         print("Entered suspend statement")
         Input = input('Do you want to use Share Suspend? (Enter Company Number / 0): ')
-        if Input.isdigit() and (int(Input) < 0 or int(Input) > 6):
+        if not Input or Input == '':
+            check_response('suspend')
+        elif Input.isdigit() and (int(Input) < 0 or int(Input) > 6):
             check_response('suspend')
         else:
             ClientSocket.send(str.encode(Input))
