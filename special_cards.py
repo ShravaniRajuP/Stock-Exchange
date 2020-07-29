@@ -20,6 +20,7 @@ def debenture(current_player, company):
         company.company_total_buy_shares += current_player.player_shares[company.company_name]
         print("{} {}".format(current_player.player_name, ' debenture'))
         broadcast(current_player.player_name + ' played debenture.')
+        print_name_amt_shares(cp)
         card_discard(current_player, 'Debenture')
 
 #Trade - Rights
