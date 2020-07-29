@@ -1,5 +1,4 @@
-from check_director import check_director
-from check_owner import check_owner
+from check_director_owner import check_director, check_owner
 import time, json
 
 def owner_director(com_name_list, list_of_players, card_list, list_of_companies):

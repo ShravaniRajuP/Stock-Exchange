@@ -9,11 +9,7 @@ def game(turn, num, list_of_players, current_turn):
                 player.player_connection.send(str.encode('wait ' + str(current_player.player_name)))
         time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
-        
-        ## Trade
         player_choice(current_player, list_of_players)
-        
-        #End Turn 
         print('End of turn {} \n'.format(turn+1))
         # print_name_amt_shares(current_player)
         turn += 1

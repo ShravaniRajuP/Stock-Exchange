@@ -1,7 +1,7 @@
 
 import random, time, json
 from Classes import Cards, Player
-from global_vars import get_clients
+from global_vars import get_clients, get_cnl
 
 def create_cards(list_of_companies):
     price_range = [-30, -30, 30, 30, -25, -25, 25, 25, -20, -20, 20, 20,
@@ -65,10 +65,29 @@ def card_discard(current_player, choice):
             current_player.player_cards.pop(discard)
             break
 
-def broadcast(clients, msg = None):
+def broadcast(msg = None):
     clients = get_clients()
     for conn in clients.values():
         if type(msg) == str:
             conn.send(str.encode(msg))
         else:
             conn.send(json.dumps(msg).encode())
+
+def broadcast_update():
+    clients = get_clients()
+    com_name_list = get_cnl()
+    broadcast('update')
+    time.sleep(1)
+    for company in com_name_list:
+        broadcast(str(company.company_current_price))
+        time.sleep(1)
+
+def squaring_short_shares(list_of_players, final_curr):
+    for all_player in list_of_players:
+        for com,shares in all_player.player_shares.items():
+            if shares < 0:
+                all_player.player_amount += (shares*prev_list[com]*-2) + \
+                        ((prev_list[com] - list_of_companies[com])*shares*-1)
+                all_player.player_shares[com] = 0
+        all_player.player_amount *= 1+(final_curr/100)
+        all_player.player_amount = (all_player.player_amount // 1000)*1000

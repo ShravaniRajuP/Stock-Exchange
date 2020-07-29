@@ -5,8 +5,8 @@ from global_vars import get_clients
 def loan(current_player):
     clients = get_clients()
     current_player.player_amount += 100000
-    print("{} {}".format(current_player.player_name,'loans'))
-    broadcast(clients, current_player.player_name + ' loaned some money.')
+    print("{} {}".format(current_player.player_name, ' loaned.'))
+    broadcast(current_player.player_name + ' loaned some money.')
     print_name_amt_shares(current_player)
     card_discard(current_player, 'Loan')
     
@@ -18,14 +18,14 @@ def debenture(current_player, company):
             current_player.player_shares[company.company_name] * company.company_starting_price
         current_player.player_shares[company.company_name] = 0
         company.company_total_buy_shares += current_player.player_shares[company.company_name]
-        print("{} {}".format(current_player.player_name,'debenture'))
-        broadcast(clients, current_player.player_name + ' played debenture.')
+        print("{} {}".format(current_player.player_name, ' debenture'))
+        broadcast(current_player.player_name + ' played debenture.')
         card_discard(current_player, 'Debenture')
 
 #Trade - Rights
 def rights(company, lp, name, cp):
     clients = get_clients()
-    broadcast(clients, ', '.join([cp.player_name, " invoked rights in ", company.company_name]))
+    broadcast(', '.join([cp.player_name, " invoked rights in ", company.company_name]))
     for _ in range(len(lp)):
         available_shares = min((cp.player_shares[company.company_name]//2000) * \
             1000, company.company_total_buy_shares)

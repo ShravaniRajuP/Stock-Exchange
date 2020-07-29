@@ -10,12 +10,12 @@ class Player():
         return self.player_name
 
 class Cards():
-    def __init__(self,company,value):
+    def __init__(self, company, value):
         self.card_company = company
         self.card_value = value
     
 class Company():
-    def __init__(self,name,sp):
+    def __init__(self, name, sp):
         self.company_name = name
         self.company_starting_price = sp
         self.company_current_price = sp

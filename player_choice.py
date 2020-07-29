@@ -15,7 +15,7 @@ def player_choice(current_player, lp):
     # try:
     if choice[0] in ['pass', '']:
         print("{} {}".format(current_player.player_name, choice[0]))
-        broadcast(clients, current_player.player_name + " passed.")
+        broadcast(current_player.player_name + " passed.")
         time.sleep(1)
         return
     elif choice[0] in ['buy', 'sell', 'sbuy', 'ssell']:
@@ -37,7 +37,7 @@ def player_choice(current_player, lp):
     elif choice[0] == 'rights' and card_check(current_player, choice[0]):
         company = com_name_list[int(choice[1])-1]
         print("Current player before rights  {}".format(current_player.player_name))
-        rights(company,lp, current_turn, current_player)
+        rights(company, lp, current_turn, current_player)
         print("Current player after rights  {}".format(current_player.player_name))
         print("{} {}".format(current_player.player_name,choice))
         for player in lp:
@@ -59,14 +59,8 @@ def buy(clients, current_player, company, shares):
         current_player.player_amount -= shares * company.company_current_price
         company.company_total_buy_shares -= shares
         current_player.player_shares[company.company_name] = \
-            current_player.player_shares.get(company.company_name,0) + shares
-        # if current_player.player_shares[company.company_name] >= 100000:
-        #     company.company_owner.append(current_player)
-        #     print("{} Owner: {}".format(company.company_name, current_player.player_name))
-        # elif current_player.player_shares[company.company_name] >= 50000:
-        #     company.company_director.append(current_player)
-        #     print("{} Director: {}".format(company.company_name, current_player.player_name))                                                                                               
-        broadcast(clients, ', '.join([current_player.player_name, "bought", company.company_name, str(shares)]))
+            current_player.player_shares.get(company.company_name,0) + shares                                                                                             
+        broadcast(', '.join([current_player.player_name, "bought", company.company_name, str(shares)]))
         print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'buys'))
     else:
@@ -84,13 +78,7 @@ def sell(clients, current_player, company, shares):
         company.company_total_buy_shares += shares
         current_player.player_shares[company.company_name] = \
             current_player.player_shares.get(company.company_name,0) - shares
-        # if current_player in company.company_owner and current_player.player_shares[company.company_name] < 100000:
-        #     company.company_owner.remove(current_player)
-        #     print("{} not Owner: {}".format(company.company_name, current_player.player_name))
-        # elif current_player in company.company_owner and current_player.player_shares[company.company_name] < 50000:
-        #     company.company_director.remove(current_player)
-        #     print("{} not director: {}".format(company.company_name, current_player.player_name))
-        broadcast(clients, ', '.join([current_player.player_name, "sold", company.company_name, str(shares)]))
+        broadcast(', '.join([current_player.player_name, "sold", company.company_name, str(shares)]))
         print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'sells'))
     else:
@@ -109,11 +97,12 @@ def ssell(clients, current_player, company, shares):
         current_player.player_shares[company.company_name] = \
             current_player.player_shares.get(company.company_name,0) - shares
         company.company_total_sell_shares -= shares
-        broadcast(clients, ', '.join([current_player.player_name, "shorts", company.company_name, str(shares)]))  
+        broadcast(', '.join([current_player.player_name, "shorts", company.company_name, str(shares)]))  
         print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'shorts'))
     else:
-        current_player.player_connection.send(str.encode("Not enough shares to sell or not enough money. \n"))
+        current_player.player_connection.send(str.encode("Not enough shares to sell or not "\
+            + "enough money. \n"))
         time.sleep(1)
         current_player.player_connection.send(str.encode('play'))
         time.sleep(1)
@@ -127,7 +116,7 @@ def sbuy(clients, current_player, company, shares):
             current_player.player_shares.get(company.company_name,0) + shares
         current_player.player_amount += shares*company.company_current_price*2
         company.company_total_sell_shares += shares
-        broadcast(clients, current_player.player_name + ',' + ','.join(["does not short sell ",\
+        broadcast(current_player.player_name + ',' + ','.join(["does not short sell ",\
             company.company_name, str(shares)]))
         print_name_amt_shares(current_player)
         print("{} {}".format(current_player.player_name,'buys short sold'))
