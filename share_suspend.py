@@ -1,5 +1,5 @@
 import time
-from global_vars import get_ss_holder, get_cnl, get_loco
+from global_vars import get_ss_holder, get_cnl, get_loco, set_ss_holder
 
 def share_suspend(cp, prev_list):
     com_name_list = get_cnl()
@@ -30,4 +30,4 @@ def share_suspend_check(prev_list):
         share_suspend_holder.player_connection.send(str.encode('suspend'))
         time.sleep(1)
         share_suspend(share_suspend_holder.player_connection, prev_list)
-        share_suspend_holder = None
+        set_ss_holder(None)

@@ -132,4 +132,5 @@ def gameplay():
             all_player.player_amount += all_player.player_shares[shares] * list_of_companies[shares]
         broadcast(clients,' '.join(['Name: ',all_player.player_name,'; Amount: ',str(all_player.player_amount)]))
         time.sleep(1)
-        gamereplay()
+    
+    gamereplay()
