@@ -1,0 +1,173 @@
+<CardsLayout>
+    canvas.before:
+        Color:
+            rgba: 1,1,1,1
+        Rectangle:
+            size: self.size
+            pos : self.pos
+    size_hint : 0.3,1
+    cols: 2
+    padding : 10, 20
+
+<OptionLayout>
+    canvas.before:
+        Color:
+            rgba: 1,1,1,1
+        Rectangle:
+            size: self.size
+            pos : self.pos
+    size_hint : 0.3,1
+    orientation:'vertical'
+    spacing: 30
+    padding: 40
+#    Label:
+#        text: "Testing Options"
+#        color : 0,0,0,1
+
+<ChoiceLayout>
+    height : 30
+    size_hint_y : None
+    Button:
+        text: 'Buy'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'Sell'
+        size_hint_y: None
+        height : 30
+    Button:
+        text: 'Pass'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item2')
+    Button:
+        text: 'Short Sell'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'Loan'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'Rights'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'Debenture'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+
+<CompanyLayout>
+    height : 30
+    size_hint_y : None
+    Button:
+        text: 'W'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'H'
+        size_hint_y: None
+        height : 30
+    Button:
+        text: 'T'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item2')
+    Button:
+        text: 'O'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'R'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+    Button:
+        text: 'I'
+        size_hint_y: None
+        height : 30
+        on_release: root.select('item1')
+
+
+<LogLayout>
+    viewclass:'Label'
+    size_hint : 0.4,1
+    RecycleGridLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        cols:1
+
+<PlayerDetailsLayout>
+    canvas.before:
+        Color:
+            rgba: 0,0,1,1
+        Rectangle:
+            size: self.size
+            pos : self.pos
+    cols: 1
+    size_hint: 0.6,1
+    Label:
+        text: "Testing Player Details"
+        color : 0,0,0,1
+
+<PriceListLayout>
+    cols: 1
+    size_hint : 0.4,1
+    Label:
+        text: "Testing Price List"
+        color : 0,0,0,1
+
+
+<RootWidget>
+    orientation:'vertical'
+    margin : 10
+    spacing : 20
+    canvas.before:
+        Color:
+            rgba: 1,0,1,1
+        Rectangle:
+            size: self.size
+            pos : self.pos
+
+    BoxLayout:
+        canvas.before:
+            Color:
+                rgba: 0,0,1,1
+            Rectangle:
+                size: self.size
+                pos : self.pos
+        orientation: 'horizontal'
+        size_hint : 1,0.6
+        spacing : 20
+
+        CardsLayout:
+        OptionLayout:
+            TextInput:
+                hint_text : "Enter"
+                size_hint: 1, None
+                height : 30
+        LogLayout:
+
+    BoxLayout:
+        canvas.before:
+            Color:
+                rgba: 1,0,0,1
+            Rectangle:
+                size: self.size
+                pos : self.pos
+        orientation:'horizontal'
+        size_hint : 1,0.4
+        spacing : 20
+        PlayerDetailsLayout:
+
+        PriceListLayout:
+
