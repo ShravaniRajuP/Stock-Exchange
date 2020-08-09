@@ -1,7 +1,5 @@
 {
-<<<<<<< Updated upstream
-    "python.pythonPath": "C:\\ProgramData\\Anaconda3\\python.exe"
-=======
-    "python.pythonPath": "C:\\Users\\shrav\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe"
->>>>>>> Stashed changes
+    // "python.pythonPath": "C:\\ProgramData\\Anaconda3\\python.exe"
+    "python.pythonPath": "C:\\Users\\Test\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
+    "python.analysis.cacheFolderPath": "C:\\Hardik\\Studies\\Stock-Exchange"
 }

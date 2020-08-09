@@ -1,5 +1,6 @@
 import time
 from global_vars import get_ss_holder, get_cnl, get_loco, set_ss_holder
+from helper import *
 
 def share_suspend(cp, prev_list):
     com_name_list = get_cnl()
@@ -16,6 +17,7 @@ def share_suspend(cp, prev_list):
             else:
                 company.company_current_price = prev_list[company.company_name]
                 list_of_companies[company.company_name] = prev_list[company.company_name]
+                broadcast("{} share suspended".format(company.company_name))
                 return 1
         else:
             company.company_current_price = prev_list[company.company_name]
