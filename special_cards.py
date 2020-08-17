@@ -3,7 +3,7 @@ from global_vars import get_clients
 
 #Trade - Loan
 def loan(current_player):
-    clients = get_clients()
+    # clients = get_clients()
     current_player.player_amount += 100000
     print("{} {}".format(current_player.player_name, ' loaned.'))
     broadcast(current_player.player_name + ' loaned some money.')
@@ -12,7 +12,7 @@ def loan(current_player):
     
 #Trade - Debenture
 def debenture(current_player, company):
-    clients = get_clients()
+    # clients = get_clients()
     if company.company_current_price == 0 and current_player.player_shares[company.company_name]:
         current_player.player_amount += \
             current_player.player_shares[company.company_name] * company.company_starting_price
@@ -20,20 +20,20 @@ def debenture(current_player, company):
         company.company_total_buy_shares += current_player.player_shares[company.company_name]
         print("{} {}".format(current_player.player_name, ' debenture'))
         broadcast(current_player.player_name + ' played debenture.')
-        print_name_amt_shares(cp)
+        print_name_amt_shares(current_player)
         card_discard(current_player, 'Debenture')
 
 #Trade - Rights
 def rights(company, lp, name, cp):
-    clients = get_clients()
+    # clients = get_clients()
     broadcast(', '.join([cp.player_name, " invoked rights in ", company.company_name]))
     for _ in range(len(lp)):
-        available_shares = min((cp.player_shares[company.company_name]//2000) * \
+        available_shares = min((cp.player_shares.get(company.company_name)//2000) * \
             1000, company.company_total_buy_shares)
         check_amount = cp.player_amount - available_shares * 10
         if check_amount < 0:
             max_shares = (cp.player_amount//10000)
-            cp.player_shares[company.company_name] = cp.player_shares[company.company_name] \
+            cp.player_shares[company.company_name] = cp.player_shares.get(company.company_name) \
                 + max_shares * 1000
             cp.player_amount -= max_shares * 10000
             company.company_total_buy_shares -= max_shares*1000

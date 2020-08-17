@@ -45,7 +45,7 @@ def gameplay():
     current_turn = get_current_turn()
 
     # ### Step Two: Start the game
-    while rounds < 1:
+    while rounds < 10:
         for player in list_of_players:
             player.player_connection.send(str.encode("Cards"))
             time.sleep(1)
@@ -85,7 +85,14 @@ def gameplay():
             list_of_companies[c.company_name] = c.company_current_price
 
         # Squaring off the short shares
-        squaring_short_shares(list_of_players, final_curr)
+        for all_player in list_of_players:
+            for com,shares in all_player.player_shares.items():
+                if shares < 0:
+                    all_player.player_amount += (shares*prev_list[com]*-2) + \
+                            ((prev_list[com] - list_of_companies[com])*shares*-1)
+                    all_player.player_shares[com] = 0
+            all_player.player_amount *= 1+(final_curr/100)
+            all_player.player_amount = (all_player.player_amount // 1000)*1000
 
         # Resetting total short shares to maximum
         for com in com_name_list:

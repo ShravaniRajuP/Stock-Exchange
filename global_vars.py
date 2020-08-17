@@ -42,27 +42,27 @@ def get_host_name():
 def set_loco_first(loco):
     global list_of_companies
     list_of_companies = loco
-    print(loco, list_of_companies)
+    # print(loco, list_of_companies)
 
 def set_loco_part(key, value):
     global list_of_companies
     list_of_companies[key] = value
 
 def get_loco():
-    print(list_of_companies)
+    # print(list_of_companies)
     return list_of_companies
 
 def set_cnl_first():
     global com_name_list
     com_name_list = [Company(company,price) for company,price in list_of_companies.items()]
-    print('set: ', com_name_list[0].company_current_price)
+    # print('set: ', com_name_list[0].company_current_price)
 
 def set_cnl_part(index, value):
     global com_name_list
     com_name_list[index] = value
 
 def get_cnl():
-    print('get: ', com_name_list[0].company_current_price)
+    # print('get: ', com_name_list[0].company_current_price)
     return com_name_list
 
 def set_loca_full(cards):

@@ -2,7 +2,6 @@
 import random, time, json
 from Classes import Cards, Player
 from global_vars import get_clients, get_cnl
-
 def create_cards(list_of_companies):
     price_range = [-30, -30, 30, 30, -25, -25, 25, 25, -20, -20, 20, 20,
                    -15, -15, 15, 15, -10, -10, 10, 10, -5, -5, 5, 5]
@@ -74,7 +73,6 @@ def broadcast(msg = None):
             conn.send(json.dumps(msg).encode())
 
 def broadcast_update():
-    clients = get_clients()
     com_name_list = get_cnl()
     broadcast('update')
     time.sleep(1)

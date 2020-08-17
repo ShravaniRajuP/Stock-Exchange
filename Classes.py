@@ -3,7 +3,7 @@ class Player():
         self.player_name = name
         self.player_amount = amount
         self.player_cards = []
-        self.player_shares = {}
+        self.player_shares = {'Wockhardt': 0,'HDFC': 0, 'TATA': 0, 'ONGC': 0, 'Reliance': 0, 'Infosys': 0}
         self.player_connection = conn
 
     def __str__(self):

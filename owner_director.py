@@ -19,6 +19,8 @@ def owner_director(com_name_list, list_of_players, card_list, list_of_companies)
                     choice = com.company_owner.player_connection.recv(512).decode('utf-8').upper()
                     if choice == "Y":
                         com.company_current_price = max(list_of_companies[com.company_name] - least,0)
+        else:
+            com.company_owner = None
 
         if com.company_total_buy_shares <= 150000 and not com.company_owner:
             director = check_director(com, list_of_players)
