@@ -5,9 +5,14 @@
         Rectangle:
             size: self.size
             pos : self.pos
+    viewclass:'Label'
     size_hint : 0.3,1
-    cols: 2
-    padding : 10, 20
+    RecycleGridLayout:
+        default_size: None, dp(36)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        cols:2
 
 <OptionLayout>
     canvas.before:
@@ -19,7 +24,7 @@
     size_hint : 0.3,1
     orientation:'vertical'
     spacing: 30
-    padding: 40
+    padding: 40,100
 #    Label:
 #        text: "Testing Options"
 #        color : 0,0,0,1
@@ -94,7 +99,32 @@
         size_hint_y: None
         height : 30
         on_release: root.select('item1')
-
+<HeaderLayout>
+    canvas.before:
+        Color:
+            rgba: 0,0,1,1
+        Rectangle:
+            size: self.size
+            pos : self.pos
+    cols: 6
+    Label:
+        text: 'Wock'
+        color: (0,0,0,1)
+    Label:
+        text: 'HDFC'
+        color: (0,0,0,1)
+    Label:
+        text: 'TATA'
+        color: (0,0,0,1)
+    Label:
+        text: 'ONGC'
+        color: (0,0,0,1)
+    Label:
+        text: 'Rel'
+        color: (0,0,0,1)
+    Label:
+        text: 'INFY'
+        color: (0,0,0,1)
 
 <LogLayout>
     viewclass:'Label'
@@ -109,22 +139,28 @@
 <PlayerDetailsLayout>
     canvas.before:
         Color:
-            rgba: 0,0,1,1
+            rgba: 1,1,1,1
         Rectangle:
             size: self.size
             pos : self.pos
-    cols: 1
-    size_hint: 0.6,1
-    Label:
-        text: "Testing Player Details"
-        color : 0,0,0,1
+    viewclass:'Label'
+    RecycleGridLayout:
+        default_size: None, dp(24)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        cols:7
+        padding : 0,25
 
 <PriceListLayout>
-    cols: 1
-    size_hint : 0.4,1
-    Label:
-        text: "Testing Price List"
-        color : 0,0,0,1
+    viewclass:'Label'
+    size_hint : 1,0.8
+    RecycleGridLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        cols:6
 
 
 <RootWidget>
@@ -153,8 +189,10 @@
         OptionLayout:
             TextInput:
                 hint_text : "Enter"
-                size_hint: 1, None
+                size_hint: 1, 0.3
                 height : 30
+
+                multiline: 'false'
         LogLayout:
 
     BoxLayout:
@@ -167,7 +205,45 @@
         orientation:'horizontal'
         size_hint : 1,0.4
         spacing : 20
-        PlayerDetailsLayout:
 
-        PriceListLayout:
+        BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: 0,0,1,1
+                Rectangle:
+                    size: self.size
+                    pos : self.pos
+            orientation:'vertical'
+            size_hint: 0.6,1
+            BoxLayout:
+                orientation:'horizontal'
+                size_hint : 1,0.5
+                Label:
+                    text: 'Amount'
+                    color: (0,0,0,1)
+                    size_hint : 0.14,1
+                HeaderLayout:
+                    size_hint : 0.86, 1
+
+            PlayerDetailsLayout:
+                size_hint : 1,0.5
+
+            BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 0,0,0,1
+                    Rectangle:
+                        size: self.size
+                        pos : self.pos
+                orientation:'horizontal'
+                Label:
+                    text: "Test other player Names"
+
+        BoxLayout:
+            size_hint : 0.4,1
+            orientation:'vertical'
+            HeaderLayout:
+                size_hint: 1,0.2
+            PriceListLayout:
+
 

@@ -63,7 +63,7 @@ def check_response(data):
     elif data.startswith("dir"):
         director(data)
     elif data.startswith("RC"):
-        remove_ss()
+        remove_ss(data)
     else:
         print(data)
     return 1
