@@ -1,3 +1,4 @@
+
 <CardsLayout>
     canvas.before:
         Color:
@@ -163,87 +164,179 @@
         cols:6
 
 
-<RootWidget>
-    orientation:'vertical'
-    margin : 10
-    spacing : 20
-    canvas.before:
-        Color:
-            rgba: 1,0,1,1
-        Rectangle:
-            size: self.size
-            pos : self.pos
 
-    BoxLayout:
-        canvas.before:
-            Color:
-                rgba: 0,0,1,1
-            Rectangle:
-                size: self.size
-                pos : self.pos
-        orientation: 'horizontal'
-        size_hint : 1,0.6
-        spacing : 20
 
-        CardsLayout:
-        OptionLayout:
-            TextInput:
-                hint_text : "Enter"
-                size_hint: 1, 0.3
-                height : 30
-
-                multiline: 'false'
-        LogLayout:
-
-    BoxLayout:
-        canvas.before:
-            Color:
-                rgba: 1,0,0,1
-            Rectangle:
-                size: self.size
-                pos : self.pos
-        orientation:'horizontal'
-        size_hint : 1,0.4
-        spacing : 20
-
+MainScreen:
+    id : screen_manager
+    player_name : name
+    player_ip : ip_address
+    host_check : host_check
+    number_players : number_players
+    HomeScreen:
+        id : home_screen
+        name : 'home'
+        manager : "screen_manager"
         BoxLayout:
             canvas.before:
                 Color:
-                    rgba: 0,0,1,1
+                    rgba: 1,1,1,1
                 Rectangle:
                     size: self.size
                     pos : self.pos
-            orientation:'vertical'
-            size_hint: 0.6,1
+            orientation: 'vertical'
+            Label:
+                text: 'Welcome'
+                color:(0,0,0,1)
+                font_size : 48
+                size_hint : 1, 0.3
             BoxLayout:
-                orientation:'horizontal'
-                size_hint : 1,0.5
-                Label:
-                    text: 'Amount'
-                    color: (0,0,0,1)
-                    size_hint : 0.14,1
-                HeaderLayout:
-                    size_hint : 0.86, 1
+                orientation : 'horizontal'
+                size_hint : 1 , 0.4
+                BoxLayout:
+                    orientation:'vertical'
+                    spacing : 50
+                    padding : 50
+                    TextInput:
+                        id : ip_address
+                        hint_text : "Enter the IP address"
+                        size_hint: 1, 0.3
+                        height : 30
+                        multiline: False
+                    TextInput:
+                        id : name
+                        hint_text : "Enter Your Name"
+                        size_hint: 1, 0.3
+                        height : 30
+                        multiline: False
+                BoxLayout:
+                    padding : 0
+                    Button:
+                        text:'submit'
+                        size_hint: 0.4, 0.2
+                        height : 30
+                        pos_hint : {'center_x':0.5, 'center_y':0.5}
+                        on_press: app.root.check_host()
+                    Label:
+                        text: ""
+                        size_hint : 0.6,0.3
 
-            PlayerDetailsLayout:
-                size_hint : 1,0.5
 
             BoxLayout:
                 canvas.before:
                     Color:
-                        rgba: 0,0,0,1
+                        rgba: 1,1,1,1
+                    Rectangle:
+                        size: self.size
+                        pos : self.pos
+                id : host_check
+                orientation : 'horizontal'
+                opacity : 0
+                spacing: 50
+                size_hint: 1,0.3
+                padding : (50,0)
+                TextInput:
+                    id : number_players
+                    hint_text: "Enter the number of players"
+                    size_hint: 0.5, 0.3
+                    height : 30
+                    multiline: False
+                    pos_hint : {'center_x':0.5, 'center_y':0.5}
+
+                Button:
+                    text:'submit'
+                    size_hint: 0.25, 0.3
+                    height : 30
+                    pos_hint : {'center_x':0.5, 'center_y':0.5}
+                    on_press: app.root.num_of_players()
+
+                Label:
+                    size_hint : 0.25,0.3
+    GameScreen:
+        id : game_screen
+        name : 'game'
+        manager : "screen_manager"
+        RootWidget:
+            cards : cards
+            orientation:'vertical'
+            margin : 10
+            spacing : 20
+            canvas.before:
+                Color:
+                    rgba: 1,0,1,1
+                Rectangle:
+                    size: self.size
+                    pos : self.pos
+
+            BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 0,0,1,1
+                    Rectangle:
+                        size: self.size
+                        pos : self.pos
+                orientation: 'horizontal'
+                size_hint : 1,0.6
+                spacing : 20
+
+                CardsLayout:
+                    id : cards
+                OptionLayout:
+                    TextInput:
+                        hint_text : "Enter"
+                        size_hint: 1, 0.3
+                        height : 30
+                        multiline: False
+                LogLayout:
+
+            BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 1,0,0,1
                     Rectangle:
                         size: self.size
                         pos : self.pos
                 orientation:'horizontal'
-                Label:
-                    text: "Test other player Names"
+                size_hint : 1,0.4
+                spacing : 20
 
-        BoxLayout:
-            size_hint : 0.4,1
-            orientation:'vertical'
-            HeaderLayout:
-                size_hint: 1,0.2
-            PriceListLayout:
+                BoxLayout:
+                    canvas.before:
+                        Color:
+                            rgba: 0,0,1,1
+                        Rectangle:
+                            size: self.size
+                            pos : self.pos
+                    orientation:'vertical'
+                    size_hint: 0.6,1
+                    BoxLayout:
+                        orientation:'horizontal'
+                        size_hint : 1,0.5
+                        Label:
+                            text: 'Amount'
+                            color: (0,0,0,1)
+                            size_hint : 0.14,1
+                        HeaderLayout:
+                            size_hint : 0.86, 1
+
+                    PlayerDetailsLayout:
+                        size_hint : 1,0.5
+
+                    BoxLayout:
+                        canvas.before:
+                            Color:
+                                rgba: 0,0,0,1
+                            Rectangle:
+                                size: self.size
+                                pos : self.pos
+                        orientation:'horizontal'
+                        Label:
+                            text: "Test other player Names"
+
+                BoxLayout:
+                    size_hint : 0.4,1
+                    orientation:'vertical'
+                    HeaderLayout:
+                        size_hint: 1,0.2
+                    PriceListLayout:
 
 

@@ -3,19 +3,7 @@ from Classes import Company
 from client_helper import host_file, non_hostfile, wait, set_clientsocket, \
     trade, player_choice, share_suspend, director, owner, remove_ss, print_cards
 
-ClientSocket = socket.socket()
-host = input("Enter the server IP address: ")
-# host = '192.168.0.11'
-# host = '192.168.0.171'
-# host = '52.9.147.73'
-port = 1233
 list_of_companies, com_name_list = None, None
-
-print('Waiting for connection...')
-try:
-    ClientSocket.connect((host, port))
-except socket.error as e:
-    print(str(e))
 
 def set_price():
     set_clientsocket(ClientSocket)
@@ -47,7 +35,7 @@ def check_response(data):
     elif 'Shares' in data:
         print(data, end = ' ')
     elif data == 'Cards':
-        print_cards()
+        card_list = print_cards()
     elif data == 'suspend':
         share_suspend()
     elif data == 'play again':
@@ -68,14 +56,29 @@ def check_response(data):
         print(data)
     return 1
 
-set_price()
-flag = 1
-Input = input('Enter Your Name: ')
-ClientSocket.send(str.encode(Input))
-Response = ClientSocket.recv(1024).decode('utf-8')
-check_response(Response)
-print_price_list()
-while flag:
+if __name__ == '__main__':
+    ClientSocket = socket.socket()
+    host = input("Enter the server IP address: ")
+    # host = '192.168.0.11'
+    # host = '192.168.0.171'
+    # host = '52.9.147.73'
+    port = 1233
+
+
+    print('Waiting for connection...')
+    try:
+        ClientSocket.connect((host, port))
+    except socket.error as e:
+        print(str(e))
+
+    set_price()
+    flag = 1
+    Input = input('Enter Your Name: ')
+    ClientSocket.send(str.encode(Input))
     Response = ClientSocket.recv(1024).decode('utf-8')
-    flag = check_response(Response)
-ClientSocket.close()
+    check_response(Response)
+    print_price_list()
+    while flag:
+        Response = ClientSocket.recv(1024).decode('utf-8')
+        flag = check_response(Response)
+    ClientSocket.close()

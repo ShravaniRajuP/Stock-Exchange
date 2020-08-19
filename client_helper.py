@@ -55,12 +55,15 @@ def player_choice():
     return
 
 def print_cards():
-    print()
+    card_list = []
     for _ in range(10):
         b = b'' + ClientSocket.recv(1024)
         card = json.loads(b.decode('utf-8'))
-        space_len = 12 - len(list(card.keys())[0])
-        print(list(card.keys())[0], list(card.values())[0], sep=' : ' + ' '*space_len, end='\n')
+        card_list.append((card.keys())[0])
+        card_list.append((card.values())[0])
+        # space_len = 12 - len(list(card.keys())[0])
+        # print(list(card.keys())[0], list(card.values())[0], sep=' : ' + ' '*space_len, end='\n')
+        return card_list
 
 def share_suspend():
     print("Entered suspend statement")

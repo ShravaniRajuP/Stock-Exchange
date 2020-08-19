@@ -5,8 +5,17 @@ from kivy.uix.recycleview import RecycleView
 from kivy.uix.label import Label
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
-
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.clock import Clock
+
+import socket, json
+from Classes import Company
+from client_helper import host_file, non_hostfile, wait, set_clientsocket, \
+    trade, player_choice, share_suspend, director, owner, remove_ss, print_cards
+
+from client import *
+
+ClientSocket = None
 
 class CardsLayout(RecycleView):
     def __init__(self, **kwargs):
@@ -86,11 +95,57 @@ class PriceListLayout(RecycleView):
         self.data = table_data
 
 class RootWidget(BoxLayout):
-   pass
+    def change_cards(self,card_list):
+        table_data = []
+        table_data.append({'text': str("Cards"), 'color': (0, 0, 0, 1)})
+        table_data.append({'text': str("Value"), 'color': (0, 0, 0, 1)})
+        for i in card_list:
+            table_data.append({'text': str(i), 'color': (0, 0, 0, 1)})
+        self.cards.data = table_data
+
+class HomeScreen(Screen):
+    pass
+
+
+class GameScreen(Screen):
+    pass
+
+class MainScreen(ScreenManager):
+    def __init__(self,**kwargs):
+        super(MainScreen,self).__init__(**kwargs)
+        global ClientSocket
+        ClientSocket = socket.socket()
+
+    def check_host(self):
+        global ClientSocket
+        ip = self.player_ip.text
+        name = self.player_name.text
+        try:
+            ClientSocket.connect((ip, 1233))
+        except socket.error as e:
+            print(str(e))
+
+        ClientSocket.send(str.encode(name))
+        Response = ClientSocket.recv(8).decode('utf-8').strip()
+        if Response == 'host':
+            self.host_check.opacity = 1
+        else:
+            self.current = 'game'
+
+    def num_of_players(self):
+        num_players = self.number_players.text
+        print(num_players)
+        ClientSocket.send(str.encode(num_players))
+        self.current = 'game'
+
+
+# sm = ScreenManager()
+# sm.add_widget(HomeScreen(name='home'))
+# sm.add_widget(GameScreen(name='game'))
 
 class Client(App):
-    def build(self):
-        return RootWidget()
+    pass
+
 
 if __name__ == '__main__':
     Client().run()
